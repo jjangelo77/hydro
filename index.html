@@ -931,7 +931,7 @@ function render() {
   const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const now2   = new Date();
   document.getElementById('h-date').textContent =
-    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' ' + now2.getFullYear();
+    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' · meta ' + state.config.meta.toLocaleString('pt-BR') + ' ml';
 
   // Slots
   const list = document.getElementById('slots-list');
