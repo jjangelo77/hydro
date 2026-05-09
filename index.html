@@ -104,14 +104,6 @@ body::before {
   margin-top: 6px;
   letter-spacing: 0.08em;
 }
-.h-nome {
-  font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-  margin-top: 4px;
-  letter-spacing: -0.01em;
-}
 
 .cfg-btn {
   background: var(--surface);
@@ -405,67 +397,39 @@ body::before {
   transition: width 60s linear;
 }
 
-/* MODAL */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(2,10,20,0.92);
-  backdrop-filter: blur(4px);
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s;
-  overflow: hidden;
+/* CONFIG SCREEN */
+.config-screen {
+  display: none;
+  position: relative;
+  z-index: 1;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 52px 24px 40px;
+  min-height: 100dvh;
 }
 
-.modal-overlay.open {
-  opacity: 1;
-  pointer-events: all;
-}
+.config-screen.open { display: block; }
 
-.modal-overlay.open ~ .app {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-}
-
-.modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 20px 20px 0 0;
-  padding: 28px 24px 40px;
-  width: 100%;
-  max-height: 85dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  transform: translateY(40px);
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-
-.modal-overlay.open .modal-box {
-  transform: translateY(0);
-}
-
-.modal-handle {
-  width: 36px;
-  height: 3px;
-  background: var(--border2);
-  border-radius: 2px;
-  margin: 0 auto 24px;
-}
-
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
+.cfg-title {
+  font-size: 22px;
+  font-weight: 800;
   color: var(--text);
-  margin-bottom: 24px;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.cfg-brand {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-family: var(--mono);
+  margin-bottom: 28px;
 }
 
 .field {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .field-label {
@@ -484,8 +448,8 @@ body::before {
   font-weight: 500;
 }
 
-input[type="time"],
-input[type="range"] {
+input[type="text"],
+input[type="time"] {
   width: 100%;
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -498,9 +462,11 @@ input[type="range"] {
   transition: border-color 0.15s;
 }
 
+input[type="text"]:focus,
 input[type="time"]:focus { border-color: var(--accent); }
 
 input[type="range"] {
+  width: 100%;
   padding: 0;
   height: 36px;
   cursor: pointer;
@@ -509,7 +475,7 @@ input[type="range"] {
   background: transparent;
 }
 
-.modal-save {
+.cfg-save {
   width: 100%;
   background: var(--accent);
   border: none;
@@ -524,9 +490,9 @@ input[type="range"] {
   transition: background 0.15s;
   margin-top: 4px;
 }
-.modal-save:hover { background: var(--accent2); }
+.cfg-save:hover { background: var(--accent2); }
 
-.modal-cancel {
+.cfg-cancel {
   width: 100%;
   background: transparent;
   border: 1px solid var(--border);
@@ -540,7 +506,7 @@ input[type="range"] {
   margin-top: 8px;
   transition: border-color 0.15s;
 }
-.modal-cancel:hover { border-color: var(--border2); color: var(--text2); }
+.cfg-cancel:hover { border-color: var(--border2); color: var(--text2); }
 
 /* TOAST */
 .toast {
@@ -714,7 +680,6 @@ input[type="range"] {
     <div>
       <div class="h-brand">IASolution</div>
       <div class="h-title" id="h-greeting">H<span>2</span>O</div>
-      <div class="h-nome" id="h-nome"></div>
       <div class="h-date" id="h-date">—</div>
     </div>
     <button class="cfg-btn" onclick="openModal()">⚙ config</button>
@@ -769,58 +734,47 @@ input[type="range"] {
   <div id="history-section"></div>
 </div>
 
-<!-- MODAL CONFIG -->
-<div class="modal-overlay" id="modal">
-  <div class="modal-box">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Configurar</div>
+<!-- CONFIG SCREEN -->
+<div class="config-screen" id="config-screen">
+  <div class="cfg-brand">IASolution</div>
+  <div class="cfg-title">Configurar</div>
 
-    <div class="field">
-      <div class="field-label">Seu nome</div>
-      <input type="text" id="inp-nome" placeholder="ex: Jonas" style="
-        width:100%;background:var(--surface2);border:1px solid var(--border);
-        border-radius:10px;padding:10px 14px;color:var(--text);
-        font-family:var(--mono);font-size:14px;outline:none;
-      ">
-    </div>
-
-    
-
-    <div class="field">
-      <div class="field-label">Peso (kg) <span class="field-val" id="lbl-peso">70 kg</span></div>
-      <input type="range" id="inp-peso" min="40" max="180" step="1" value="70"
-        oninput="onPesoChange(this.value)">
-    </div>
-
-    <div class="field">
-      <div class="field-label">
-        Meta diária
-        <span class="field-val" id="lbl-meta">4000 ml</span>
-      </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:6px;" id="meta-hint">calculado pelo peso · ajuste se necessário</div>
-      <input type="range" id="inp-meta" min="1000" max="8000" step="250" value="4000"
-        oninput="document.getElementById('lbl-meta').textContent=this.value+' ml';document.getElementById('meta-hint').textContent='ajustado manualmente'">
-    </div>
-
-    <div class="field">
-      <div class="field-label">Horário de início <span class="field-val" id="lbl-inicio">07:30</span></div>
-      <input type="time" id="inp-inicio" value="07:30" oninput="document.getElementById('lbl-inicio').textContent=this.value">
-    </div>
-
-    <div class="field">
-      <div class="field-label">Horário de fim <span class="field-val" id="lbl-fim">23:00</span></div>
-      <input type="time" id="inp-fim" value="23:00" oninput="document.getElementById('lbl-fim').textContent=this.value">
-    </div>
-
-    <div class="field">
-      <div class="field-label">Volume da garrafa <span class="field-val" id="lbl-garrafa">750 ml</span></div>
-      <input type="range" id="inp-garrafa" min="250" max="2000" step="50" value="750"
-        oninput="document.getElementById('lbl-garrafa').textContent=this.value+' ml'">
-    </div>
-
-    <button class="modal-save" onclick="saveConfig()">Salvar e recalcular</button>
-    <button class="modal-cancel" onclick="closeModal()">cancelar</button>
+  <div class="field">
+    <div class="field-label">Seu nome</div>
+    <input type="text" id="inp-nome" placeholder="ex: Jonas">
   </div>
+
+  <div class="field">
+    <div class="field-label">Peso (kg) <span class="field-val" id="lbl-peso">70 kg</span></div>
+    <input type="range" id="inp-peso" min="40" max="180" step="1" value="70"
+      oninput="onPesoChange(this.value)">
+  </div>
+
+  <div class="field">
+    <div class="field-label">Meta diária <span class="field-val" id="lbl-meta">4000 ml</span></div>
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:6px;" id="meta-hint">calculado pelo peso · ajuste se necessário</div>
+    <input type="range" id="inp-meta" min="1000" max="8000" step="250" value="4000"
+      oninput="document.getElementById('lbl-meta').textContent=this.value+' ml';document.getElementById('meta-hint').textContent='ajustado manualmente'">
+  </div>
+
+  <div class="field">
+    <div class="field-label">Horário de início <span class="field-val" id="lbl-inicio">07:30</span></div>
+    <input type="time" id="inp-inicio" value="07:30" oninput="document.getElementById('lbl-inicio').textContent=this.value">
+  </div>
+
+  <div class="field">
+    <div class="field-label">Horário de fim <span class="field-val" id="lbl-fim">23:00</span></div>
+    <input type="time" id="inp-fim" value="23:00" oninput="document.getElementById('lbl-fim').textContent=this.value">
+  </div>
+
+  <div class="field">
+    <div class="field-label">Volume da garrafa <span class="field-val" id="lbl-garrafa">750 ml</span></div>
+    <input type="range" id="inp-garrafa" min="250" max="2000" step="50" value="750"
+      oninput="document.getElementById('lbl-garrafa').textContent=this.value+' ml'">
+  </div>
+
+  <button class="cfg-save" onclick="saveConfig()">Salvar e recalcular</button>
+  <button class="cfg-cancel" onclick="closeModal()">cancelar</button>
 </div>
 
 <script>
@@ -962,15 +916,18 @@ function render() {
   // Greeting
   const nome = state.profile.nome;
   const greetEl = document.getElementById('h-greeting');
-  greetEl.innerHTML = `H<span>2</span>O`;
-  document.getElementById('h-nome').textContent = nome ? 'Olá, ' + nome : '';
+  if (nome) {
+    greetEl.innerHTML = `Olá, <span>${nome}</span>`;
+  } else {
+    greetEl.innerHTML = `H<span>2</span>O`;
+  }
 
   // Date
   const days   = ['dom','seg','ter','qua','qui','sex','sáb'];
   const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const now2   = new Date();
   document.getElementById('h-date').textContent =
-    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' ' + now2.getFullYear() + ' · meta ' + state.config.meta.toLocaleString('pt-BR') + ' ml';
+    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' ' + now2.getFullYear();
 
   // Slots
   const list = document.getElementById('slots-list');
@@ -1071,9 +1028,7 @@ function resetDay() {
 function openModal() {
   const c = state.config;
   const p = state.profile;
-  document.body.style.overflow = 'hidden';
   document.getElementById('inp-nome').value    = p.nome || '';
-  document.getElementById('inp-nasc').value    = p.nasc || '';
   document.getElementById('inp-peso').value    = p.peso || 70;
   document.getElementById('lbl-peso').textContent = (p.peso || 70) + ' kg';
   document.getElementById('inp-inicio').value  = c.inicio;
@@ -1085,12 +1040,13 @@ function openModal() {
   document.getElementById('lbl-meta').textContent    = c.meta + ' ml';
   document.getElementById('lbl-garrafa').textContent = c.garrafa + ' ml';
   document.getElementById('meta-hint').textContent   = 'calculado pelo peso · ajuste se necessário';
-  document.getElementById('modal').classList.add('open');
+  document.getElementById('config-screen').classList.add('open');
+  document.querySelector('.app').style.display = 'none';
 }
 
 function closeModal() {
-  document.body.style.overflow = '';
-  document.getElementById('modal').classList.remove('open');
+  document.getElementById('config-screen').classList.remove('open');
+  document.querySelector('.app').style.display = 'block';
 }
 
 function onPesoChange(val) {
@@ -1103,14 +1059,13 @@ function onPesoChange(val) {
 
 function saveConfig() {
   const nome    = document.getElementById('inp-nome').value.trim();
-  const nasc    = document.getElementById('inp-nasc').value;
   const peso    = parseInt(document.getElementById('inp-peso').value);
   const inicio  = document.getElementById('inp-inicio').value;
   const fim     = document.getElementById('inp-fim').value;
   const meta    = parseInt(document.getElementById('inp-meta').value);
   const garrafa = parseInt(document.getElementById('inp-garrafa').value);
   if (toMin(fim) <= toMin(inicio)) { toast('fim deve ser depois do início'); return; }
-  state.profile = { nome, nasc, peso };
+  state.profile = { nome, peso };
   state.config  = { inicio, fim, meta, garrafa };
   state.checks  = {};
   saveState();
