@@ -808,7 +808,7 @@ input[type="range"] {
 
 <script>
 // ─── SENHA ──────────────────────────────────────────────────
-const PASS = 'jon*77';
+const PASS = 'jon*1077';
 function checkPass() {
   const val = document.getElementById('lock-input').value;
   if (val === PASS) {
@@ -818,15 +818,14 @@ function checkPass() {
     document.getElementById('lock-err').style.display = 'block';
   }
 }
-// verifica se já está autenticado
-if (localStorage.getItem('hydro_auth') === '1') {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('lock-screen').style.display = 'none';
-  });
-}
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') checkPass();
 });
+if (localStorage.getItem('hydro_auth') !== '1') {
+  document.getElementById('lock-screen').style.display = 'flex';
+} else {
+  document.getElementById('lock-screen').style.display = 'none';
+}
 
 // ─── CONSTANTS ──────────────────────────────────────────────
 const STORE_KEY   = 'hydro_v2';
