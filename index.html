@@ -113,6 +113,7 @@ body::before {
   margin-top: 4px;
   letter-spacing: 0.01em;
 }
+
 .cfg-btn {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -686,9 +687,8 @@ input[type="range"] {
 
   <div class="header">
     <div>
-      <div class="h-brand">IASOLUTION</div>
-      <div class="h-title">H<span>2</span>O</div>
-      <div class="h-nome" id="h-nome"></div>
+      <div class="h-brand">IASolution</div>
+      <div class="h-title" id="h-greeting">H<span>2</span>O</div>
       <div class="h-date" id="h-date">—</div>
     </div>
     <button class="cfg-btn" onclick="openModal()">⚙ config</button>
@@ -931,7 +931,7 @@ function render() {
   const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const now2   = new Date();
   document.getElementById('h-date').textContent =
-    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' ' + now2.getFullYear();
+    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' · meta ' + state.config.meta.toLocaleString('pt-BR') + ' ml';
 
   // Slots
   const list = document.getElementById('slots-list');
