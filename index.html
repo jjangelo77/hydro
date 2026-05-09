@@ -104,6 +104,13 @@ body::before {
   margin-top: 6px;
   letter-spacing: 0.08em;
 }
+.h-nome {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+}
 
 .cfg-btn {
   background: var(--surface);
@@ -696,6 +703,7 @@ input[type="range"] {
     <div>
       <div class="h-brand">IASolution</div>
       <div class="h-title" id="h-greeting">H<span>2</span>O</div>
+      <div class="h-nome" id="h-nome"></div>
       <div class="h-date" id="h-date">—</div>
     </div>
     <button class="cfg-btn" onclick="openModal()">⚙ config</button>
@@ -950,11 +958,8 @@ function render() {
   // Greeting
   const nome = state.profile.nome;
   const greetEl = document.getElementById('h-greeting');
-  if (nome) {
-    greetEl.innerHTML = `Olá, <span>${nome}</span>`;
-  } else {
-    greetEl.innerHTML = `H<span>2</span>O`;
-  }
+  greetEl.innerHTML = `H<span>2</span>O`;
+  document.getElementById('h-nome').textContent = nome ? nome : '';
 
   // Date
   const days   = ['dom','seg','ter','qua','qui','sex','sáb'];
