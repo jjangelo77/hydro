@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#020a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Hydro</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #020a14;
+  --surface: #040f1e;
+  --surface2: #061528;
+  --border: #0d2240;
+  --border2: #102a50;
+  --accent: #0066ff;
+  --accent2: #004acc;
+  --glow: rgba(0,102,255,0.15);
+  --glow2: rgba(0,102,255,0.06);
+  --text: #e8f4ff;
+  --text2: #5a8ab8;
+  --text3: #2a4a6a;
+  --done: #00c87a;
+  --done-bg: #00140d;
+  --done-border: #004d2a;
+  --late: #ff5500;
+  --late-bg: #140400;
+  --late-border: #5a1a00;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* GRID BG */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,102,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,102,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+  min-height: 100dvh;
+}
+
+/* HEADER */
+.header {
+  padding: 52px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.h-brand {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: #0a2a5a;
+  background: #e8f4ff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.h-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.h-title span {
+  color: var(--accent);
+}
+
+.h-date {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 6px;
+  letter-spacing: 0.08em;
+}
+
+.cfg-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+.cfg-btn:hover { border-color: var(--accent); color: var(--text); background: var(--glow2); }
+
+/* RING */
+.ring-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px 28px;
+}
+
+.ring-outer {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.ring-svg {
+  width: 200px;
+  height: 200px;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--surface2);
+  stroke-width: 10;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 565;
+  stroke-dashoffset: 565;
+  filter: drop-shadow(0 0 8px rgba(0,102,255,0.6));
+  transition: stroke-dashoffset 0.7s cubic-bezier(0.4,0,0.2,1);
+}
+
+.ring-fill.done-color {
+  stroke: var(--done);
+  filter: drop-shadow(0 0 8px rgba(0,200,122,0.6));
+}
+
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-ml {
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.ring-unit {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+.ring-pct {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* STATS ROW */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 24px 24px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.stat-val.blue { color: var(--accent); }
+.stat-val.green { color: var(--done); }
+
+.stat-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* SLOTS */
+.section-label {
+  padding: 0 24px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reset-link {
+  color: var(--late);
+  cursor: pointer;
+  font-size: 10px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  letter-spacing: 0.1em;
+}
+.reset-link:hover { opacity: 1; }
+
+.slots {
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slot {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.slot:active { transform: scale(0.985); }
+
+.slot::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: width 0.3s, opacity 0.3s;
+  width: 0%;
+}
+
+.slot.active { border-color: var(--border2); background: var(--glow2); }
+.slot.active::after { opacity: 0.5; }
+
+.slot.done { border-color: var(--done-border); background: var(--done-bg); }
+.slot.done::after { opacity: 0.8; background: var(--done); width: 100%; }
+
+.slot.late { border-color: var(--late-border); background: var(--late-bg); }
+.slot.late::after { opacity: 0.6; background: var(--late); width: 100%; }
+
+.slot-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.slot.active .slot-num { border-color: var(--accent); color: var(--accent); background: var(--glow); }
+.slot.done .slot-num { border-color: var(--done-border); color: var(--done); background: rgba(0,200,122,0.08); }
+.slot.late .slot-num { border-color: var(--late-border); color: var(--late); background: rgba(255,85,0,0.08); }
+
+.slot-info { flex: 1; min-width: 0; }
+
+.slot-time {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+
+.slot.active .slot-time { color: #6ab0ff; }
+.slot.done .slot-time { color: var(--done); }
+.slot.late .slot-time { color: var(--late); }
+
+.slot-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+}
+
+.slot.active .slot-status { color: rgba(0,102,255,0.5); }
+.slot.done .slot-status { color: rgba(0,200,122,0.4); }
+.slot.late .slot-status { color: rgba(255,85,0,0.4); }
+
+.slot-ml {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.slot-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.slot.active .slot-check {
+  border-color: var(--accent);
+  background: var(--glow);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+.slot.done .slot-check {
+  border-color: var(--done);
+  background: rgba(0,200,122,0.1);
+}
+
+.slot.late .slot-check {
+  border-color: var(--late-border);
+  background: rgba(255,85,0,0.08);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,102,255,0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(0,102,255,0); }
+}
+
+/* PROGRESS BAR INSIDE ACTIVE SLOT */
+.slot-progress {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), #6ab0ff);
+  opacity: 0.4;
+  transition: width 60s linear;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,10,20,0.92);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px 20px 0 0;
+  padding: 28px 24px 40px;
+  width: 100%;
+  transform: translateY(40px);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.modal-overlay.open .modal-box {
+  transform: translateY(0);
+}
+
+.modal-handle {
+  width: 36px;
+  height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 24px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
+}
+
+.field {
+  margin-bottom: 18px;
+}
+
+.field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.field-val {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+input[type="time"],
+input[type="range"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="time"]:focus { border-color: var(--accent); }
+
+input[type="range"] {
+  padding: 0;
+  height: 36px;
+  cursor: pointer;
+  accent-color: var(--accent);
+  border: none;
+  background: transparent;
+}
+
+.modal-save {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.modal-save:hover { background: var(--accent2); }
+
+.modal-cancel {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  margin-top: 8px;
+  transition: border-color 0.15s;
+}
+.modal-cancel:hover { border-color: var(--border2); color: var(--text2); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  white-space: nowrap;
+  z-index: 200;
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.green { border-color: var(--done-border); color: var(--done); }
+
+/* NOTIF BANNER */
+.notif-banner {
+  margin: 0 24px 16px;
+  background: rgba(0,102,255,0.06);
+  border: 1px solid rgba(0,102,255,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.notif-text {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  flex: 1;
+}
+
+.notif-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notif-banner.hidden { display: none; }
+
+/* COMPLETE BANNER */
+.complete-banner {
+  margin: 0 24px 16px;
+  background: rgba(0,200,122,0.06);
+  border: 1px solid rgba(0,200,122,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+  display: none;
+}
+
+.complete-banner.show { display: block; }
+.complete-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--done);
+  margin-bottom: 4px;
+}
+.complete-banner-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(0,200,122,0.5);
+  letter-spacing: 0.06em;
+}
+
+/* HISTÓRICO */
+.history-list {
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.hist-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hist-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.hist-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.hist-bar-wrap {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hist-bar-inner {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.hist-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.hist-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+}
+
+.hist-val.green { color: var(--done); }
+
+.hist-ml {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.hist-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.hist-badge.full { background: rgba(0,200,122,0.1); color: var(--done); border: 1px solid var(--done-border); }
+.hist-badge.half { background: rgba(0,102,255,0.08); color: var(--accent); border: 1px solid var(--border2); }
+.hist-badge.low  { background: rgba(255,85,0,0.08); color: var(--late); border: 1px solid var(--late-border); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="toast" id="toast"></div>
+
+  <div class="header">
+    <div>
+      <div class="h-brand">IASolution</div>
+      <div class="h-title">H<span>2</span>O</div>
+      <div class="h-date" id="h-date">—</div>
+    </div>
+    <button class="cfg-btn" onclick="openModal()">⚙ config</button>
+  </div>
+
+  <div class="ring-wrap">
+    <div class="ring-outer">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <circle class="ring-track" cx="100" cy="100" r="90"/>
+        <circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="90"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-ml" id="ring-ml">0</div>
+        <div class="ring-unit">ml bebidos</div>
+        <div class="ring-pct" id="ring-pct">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val blue" id="s-garrafas">0/0</div>
+      <div class="stat-lbl">garrafas</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="s-restam">—</div>
+      <div class="stat-lbl">ml restam</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val green" id="s-prox">—</div>
+      <div class="stat-lbl">próximo slot</div>
+    </div>
+  </div>
+
+  <div class="notif-banner" id="notif-banner">
+    <div class="notif-text">ativar notificações push?</div>
+    <button class="notif-btn" onclick="requestNotif()">ativar</button>
+  </div>
+
+  <div class="complete-banner" id="complete-banner">
+    <div class="complete-banner-title">🎉 Meta atingida!</div>
+    <div class="complete-banner-sub">Meta de hidratação concluída hoje</div>
+  </div>
+
+  <div class="section-label">
+    <span>slots do dia</span>
+    <span class="reset-link" onclick="resetDay()">resetar dia</span>
+  </div>
+
+  <div class="slots" id="slots-list"></div>
+
+  <div id="history-section"></div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Configurar</div>
+
+    <div class="field">
+      <div class="field-label">Horário de início <span class="field-val" id="lbl-inicio">07:30</span></div>
+      <input type="time" id="inp-inicio" value="07:30" oninput="document.getElementById('lbl-inicio').textContent=this.value">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Horário de fim <span class="field-val" id="lbl-fim">23:00</span></div>
+      <input type="time" id="inp-fim" value="23:00" oninput="document.getElementById('lbl-fim').textContent=this.value">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Meta diária <span class="field-val" id="lbl-meta">4000 ml</span></div>
+      <input type="range" id="inp-meta" min="1000" max="8000" step="250" value="4000"
+        oninput="document.getElementById('lbl-meta').textContent=this.value+' ml'">
+    </div>
+
+    <div class="field">
+      <div class="field-label">Volume da garrafa <span class="field-val" id="lbl-garrafa">750 ml</span></div>
+      <input type="range" id="inp-garrafa" min="250" max="2000" step="50" value="750"
+        oninput="document.getElementById('lbl-garrafa').textContent=this.value+' ml'">
+    </div>
+
+    <button class="modal-save" onclick="saveConfig()">Salvar e recalcular</button>
+    <button class="modal-cancel" onclick="closeModal()">cancelar</button>
+  </div>
+</div>
+
+<script>
+// ─── CONSTANTS ──────────────────────────────────────────────
+const STORE_KEY   = 'hydro_v2';
+const MAX_HISTORY = 7; // dias
+
+// ─── STATE ──────────────────────────────────────────────────
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+let state = loadState() || {
+  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+  checks: {},     // checks do dia atual { slotIndex: true }
+  lastDay: null,
+  history: {}     // { 'YYYY-M-D': { checks: {}, totalSlots: N, garrafa: N } }
+};
+
+// garante que history existe em versões antigas
+if (!state.history) state.history = {};
+
+// ─── UTILS ──────────────────────────────────────────────────
+function toMin(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h*60+m;
+}
+function fromMin(m) {
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function nowMin() {
+  const n = new Date();
+  return n.getHours()*60+n.getMinutes();
+}
+function formatDateLabel(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const days   = ['dom','seg','ter','qua','qui','sex','sáb'];
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const today = todayStr();
+  const yest  = (() => { const x = new Date(); x.setDate(x.getDate()-1); return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate(); })();
+  if (dateStr === today) return 'hoje';
+  if (dateStr === yest)  return 'ontem';
+  return days[dt.getDay()] + ' · ' + d + ' ' + months[m-1];
+}
+
+// ─── SLOTS ──────────────────────────────────────────────────
+function buildSlots() {
+  const { inicio, fim, meta, garrafa } = state.config;
+  const startM = toMin(inicio);
+  const endM   = toMin(fim);
+  const total  = endM - startM;
+  const n      = Math.ceil(meta / garrafa);
+  const step   = Math.floor(total / n);
+  return Array.from({ length: n }, (_, i) => ({
+    from: fromMin(startM + i * step),
+    to:   fromMin(i === n-1 ? endM : startM + (i+1) * step),
+    ml:   garrafa
+  }));
+}
+
+function slotStatus(slot, idx) {
+  if (state.checks[idx]) return 'done';
+  const nm = nowMin();
+  const fm = toMin(slot.from);
+  const tm = toMin(slot.to);
+  if (nm >= fm && nm < tm) return 'active';
+  if (nm >= tm) return 'late';
+  return 'upcoming';
+}
+
+// ─── RESET ON NEW DAY (salva histórico antes) ───────────────
+function checkDayReset() {
+  const today = todayStr();
+  if (state.lastDay && state.lastDay !== today) {
+    // salva o dia que passou no histórico
+    const slots = buildSlots();
+    state.history[state.lastDay] = {
+      checks:     { ...state.checks },
+      totalSlots: slots.length,
+      garrafa:    state.config.garrafa,
+      meta:       state.config.meta
+    };
+    // mantém só os últimos MAX_HISTORY dias
+    const keys = Object.keys(state.history).sort();
+    while (keys.length > MAX_HISTORY) {
+      delete state.history[keys.shift()];
+    }
+    state.checks = {};
+  }
+  state.lastDay = today;
+  saveState();
+}
+
+// ─── RENDER HOJE ─────────────────────────────────────────────
+function render() {
+  checkDayReset();
+  const slots  = buildSlots();
+  const n      = slots.length;
+  const done   = Object.values(state.checks).filter(Boolean).length;
+  const mlDone = done * state.config.garrafa;
+  const mlTotal= n * state.config.garrafa;
+  const pct    = Math.min(100, Math.round((mlDone / mlTotal) * 100));
+  const restam = Math.max(0, mlTotal - mlDone);
+
+  // Ring
+  const circ = 2 * Math.PI * 90;
+  const fill = document.getElementById('ring-fill');
+  fill.style.strokeDashoffset = circ - (pct / 100) * circ;
+  fill.classList.toggle('done-color', pct >= 100);
+  document.getElementById('ring-ml').textContent  = mlDone.toLocaleString('pt-BR');
+  document.getElementById('ring-pct').textContent = pct + '%';
+
+  // Stats
+  document.getElementById('s-garrafas').textContent = done + '/' + n;
+  document.getElementById('s-restam').textContent   = restam.toLocaleString('pt-BR');
+
+  // Next slot
+  const nm = nowMin();
+  const nextSlot = slots.find((s, i) => !state.checks[i] && toMin(s.from) > nm);
+  document.getElementById('s-prox').textContent = nextSlot ? nextSlot.from : (done === n ? '✓' : '—');
+
+  // Complete banner
+  document.getElementById('complete-banner').classList.toggle('show', done === n);
+
+  // Date
+  const days   = ['dom','seg','ter','qua','qui','sex','sáb'];
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const now2   = new Date();
+  document.getElementById('h-date').textContent =
+    days[now2.getDay()] + ' · ' + now2.getDate() + ' ' + months[now2.getMonth()] + ' ' + now2.getFullYear();
+
+  // Slots
+  const list = document.getElementById('slots-list');
+  list.innerHTML = '';
+  slots.forEach((slot, idx) => {
+    const status = slotStatus(slot, idx);
+    const fm = toMin(slot.from), tm = toMin(slot.to);
+    const elapsed    = Math.max(0, Math.min(nm - fm, tm - fm));
+    const elapsedPct = tm > fm ? Math.round((elapsed / (tm - fm)) * 100) : 0;
+
+    const icons = { done: '✓', active: '◉', late: '!', upcoming: '○' };
+    const descs = { done: 'concluído', active: 'é agora — beba!', late: 'período encerrado', upcoming: 'aguardando' };
+
+    const div = document.createElement('div');
+    div.className = 'slot ' + status;
+    div.onclick = () => toggle(idx);
+    div.innerHTML = `
+      <div class="slot-num">${String(idx+1).padStart(2,'0')}</div>
+      <div class="slot-info">
+        <div class="slot-time">${slot.from} → ${slot.to}</div>
+        <div class="slot-status">${descs[status]}</div>
+      </div>
+      <div class="slot-ml">${slot.ml}ml</div>
+      <div class="slot-check">${icons[status]}</div>
+      ${status === 'active' ? `<div class="slot-progress" style="width:${elapsedPct}%"></div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  renderHistory();
+}
+
+// ─── RENDER HISTÓRICO ────────────────────────────────────────
+function renderHistory() {
+  const container = document.getElementById('history-section');
+  const keys = Object.keys(state.history).sort().reverse(); // mais recente primeiro
+
+  if (keys.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = `
+    <div class="section-label" style="margin-top:28px;">
+      <span>histórico — 7 dias</span>
+    </div>
+    <div class="history-list">
+  `;
+
+  keys.forEach(dateKey => {
+    const h = state.history[dateKey];
+    const done  = Object.values(h.checks).filter(Boolean).length;
+    const total = h.totalSlots;
+    const pct   = Math.round((done / total) * 100);
+    const ml    = done * h.garrafa;
+    const metaMl= h.meta || (total * h.garrafa);
+    const full  = done === total;
+
+    html += `
+      <div class="hist-item">
+        <div class="hist-left">
+          <div class="hist-date">${formatDateLabel(dateKey)}</div>
+          <div class="hist-bar-wrap">
+            <div class="hist-bar-inner" style="width:${pct}%;background:${full ? 'var(--done)' : 'var(--accent)'}"></div>
+          </div>
+        </div>
+        <div class="hist-right">
+          <div class="hist-val ${full ? 'green' : ''}">${done}/${total}</div>
+          <div class="hist-ml">${ml.toLocaleString('pt-BR')} ml</div>
+        </div>
+        <div class="hist-badge ${full ? 'full' : pct >= 50 ? 'half' : 'low'}">${pct}%</div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// ─── TOGGLE ─────────────────────────────────────────────────
+function toggle(idx) {
+  state.checks[idx] = !state.checks[idx];
+  saveState();
+  const done = state.checks[idx];
+  toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
+  render();
+}
+
+function resetDay() {
+  if (!confirm('Resetar todos os checks de hoje?')) return;
+  state.checks = {};
+  saveState();
+  render();
+  toast('dia resetado');
+}
+
+// ─── MODAL ──────────────────────────────────────────────────
+function openModal() {
+  const c = state.config;
+  document.getElementById('inp-inicio').value  = c.inicio;
+  document.getElementById('inp-fim').value     = c.fim;
+  document.getElementById('inp-meta').value    = c.meta;
+  document.getElementById('inp-garrafa').value = c.garrafa;
+  document.getElementById('lbl-inicio').textContent  = c.inicio;
+  document.getElementById('lbl-fim').textContent     = c.fim;
+  document.getElementById('lbl-meta').textContent    = c.meta + ' ml';
+  document.getElementById('lbl-garrafa').textContent = c.garrafa + ' ml';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function saveConfig() {
+  const inicio  = document.getElementById('inp-inicio').value;
+  const fim     = document.getElementById('inp-fim').value;
+  const meta    = parseInt(document.getElementById('inp-meta').value);
+  const garrafa = parseInt(document.getElementById('inp-garrafa').value);
+  if (toMin(fim) <= toMin(inicio)) { toast('fim deve ser depois do início'); return; }
+  state.config = { inicio, fim, meta, garrafa };
+  state.checks = {};
+  saveState();
+  closeModal();
+  render();
+  toast('✓ configuração salva — slots recalculados', true);
+  scheduleNotifs();
+}
+
+// ─── TOAST ──────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, green = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (green ? ' green' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── NOTIFICAÇÕES ───────────────────────────────────────────
+function checkNotifBanner() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    document.getElementById('notif-banner').classList.add('hidden');
+    scheduleNotifs();
+  } else if (Notification.permission === 'default') {
+    document.getElementById('notif-banner').classList.remove('hidden');
+  } else {
+    document.getElementById('notif-banner').classList.add('hidden');
+  }
+}
+
+function requestNotif() {
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      document.getElementById('notif-banner').classList.add('hidden');
+      toast('✓ notificações ativadas', true);
+      scheduleNotifs();
+    } else {
+      toast('notificações bloqueadas');
+    }
+  });
+}
+
+let notifTimers = [];
+function scheduleNotifs() {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  notifTimers.forEach(clearTimeout);
+  notifTimers = [];
+  const slots = buildSlots();
+  const now = new Date();
+  slots.forEach((slot, idx) => {
+    if (state.checks[idx]) return;
+    const [h, m] = slot.from.split(':').map(Number);
+    const slotDate = new Date();
+    slotDate.setHours(h, m, 0, 0);
+    const diff = slotDate - now;
+    if (diff > 0) {
+      const t = setTimeout(() => {
+        if (!state.checks[idx]) {
+          new Notification('💧 Hora de beber água!', {
+            body: `Slot ${idx+1}: ${slot.from} → ${slot.to} · ${slot.ml}ml`,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💧</text></svg>'
+          });
+        }
+      }, diff);
+      notifTimers.push(t);
+    }
+  });
+}
+
+// ─── SERVICE WORKER ─────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}
+
+// ─── INIT ───────────────────────────────────────────────────
+checkNotifBanner();
+render();
+setInterval(render, 60 * 1000);
+scheduleNotifs();
+</script>
+</body>
+</html>
