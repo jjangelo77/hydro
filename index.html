@@ -425,6 +425,12 @@ body::before {
   pointer-events: all;
 }
 
+.modal-overlay.open ~ .app {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
 .modal-box {
   background: var(--surface);
   border: 1px solid var(--border2);
@@ -778,14 +784,7 @@ input[type="range"] {
       ">
     </div>
 
-    <div class="field">
-      <div class="field-label">Data de nascimento</div>
-      <input type="date" id="inp-nasc" style="
-        width:100%;background:var(--surface2);border:1px solid var(--border);
-        border-radius:10px;padding:10px 14px;color:var(--text);
-        font-family:var(--mono);font-size:14px;outline:none;
-      ">
-    </div>
+    
 
     <div class="field">
       <div class="field-label">Peso (kg) <span class="field-val" id="lbl-peso">70 kg</span></div>
@@ -1072,6 +1071,7 @@ function resetDay() {
 function openModal() {
   const c = state.config;
   const p = state.profile;
+  document.body.style.overflow = 'hidden';
   document.getElementById('inp-nome').value    = p.nome || '';
   document.getElementById('inp-nasc').value    = p.nasc || '';
   document.getElementById('inp-peso').value    = p.peso || 70;
@@ -1089,6 +1089,7 @@ function openModal() {
 }
 
 function closeModal() {
+  document.body.style.overflow = '';
   document.getElementById('modal').classList.remove('open');
 }
 
