@@ -1,4 +1,4 @@
-const CACHE = 'hydro-v1';
+const CACHE = 'hydro-v2';
 const ASSETS = [
   '/hydro.html',
   '/manifest.json',
