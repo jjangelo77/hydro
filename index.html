@@ -691,10 +691,7 @@ input[type="range"] {
       <div class="h-nome" id="h-nome"></div>
       <div class="h-date" id="h-date">—</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
     <button class="cfg-btn" onclick="openModal()">⚙ config</button>
-    <button class="cfg-btn" onclick="window.location.href='history.html'">📊 stats</button>
-</div>
   </div>
 
   <div class="ring-wrap">
@@ -978,8 +975,9 @@ function renderHistory() {
   }
 
   let html = `
-    <div class="section-label" style="margin-top:28px;">
+    <div class="section-label" style="margin-top:28px;cursor:pointer;" onclick="window.location.href='history.html'">
       <span>histórico — 7 dias</span>
+      <span style="color:var(--accent);font-size:10px;letter-spacing:0.08em;">ver tudo →</span>
     </div>
     <div class="history-list">
   `;
