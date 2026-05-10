@@ -442,7 +442,7 @@ body::before {
 
 .field-label {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 13px;
   color: var(--text3);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -454,6 +454,7 @@ body::before {
 .field-val {
   color: var(--accent);
   font-weight: 500;
+  font-size: 13px;
 }
 
 input[type="text"],
@@ -465,7 +466,7 @@ input[type="time"] {
   padding: 10px 14px;
   color: var(--text);
   font-family: var(--mono);
-  font-size: 15px;
+  font-size: 17px;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -1075,7 +1076,7 @@ function closeModal() {
 
 function onPesoChange(val) {
   document.getElementById('lbl-peso').textContent = val + ' kg';
-  const metaCalc = Math.round(parseInt(val) * 35 / 250) * 250; // arredonda p/ 250ml
+  const metaCalc = Math.round(parseInt(val) * 37 / 250) * 250; // arredonda p/ 250ml
   document.getElementById('inp-meta').value = metaCalc;
   document.getElementById('lbl-meta').textContent = metaCalc + ' ml';
   document.getElementById('meta-hint').textContent = 'calculado pelo peso · ajuste se necessário';
