@@ -971,9 +971,23 @@ function renderHistory() {
 
   if (keys.length === 0) {
     container.innerHTML = `
-      <div class="section-label" style="margin-top:28px;cursor:pointer;" onclick="window.location.href='history.html'">
+      <div class="section-label" style="margin-top:28px;">
         <span>histórico — 7 dias</span>
-        <span style="color:var(--accent);font-size:10px;">ver →</span>
+      </div>
+      <div class="history-list">
+        <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;">
+          <div class="hist-left">
+            <div class="hist-date">nenhum registro ainda</div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar-inner" style="width:0%;background:var(--accent)"></div>
+            </div>
+          </div>
+          <div class="hist-right">
+            <div class="hist-val">—</div>
+            <div class="hist-ml">0 ml</div>
+          </div>
+          <div class="hist-badge half">0%</div>
+        </div>
       </div>
     `;
     return;
