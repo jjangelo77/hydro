@@ -974,13 +974,6 @@ function renderHistory() {
     return;
   }
 
-  let html = `
-    <div class="section-label" style="margin-top:28px;cursor:pointer;" onclick="window.location.href='history.html'">
-      <span>histórico — 7 dias</span>
-      <span style="color:var(--accent);font-size:10px;letter-spacing:0.08em;">ver tudo →</span>
-    </div>
-    <div class="history-list">
-  `;
 
   keys.forEach(dateKey => {
     const h = state.history[dateKey];
@@ -992,7 +985,7 @@ function renderHistory() {
     const full  = done === total;
 
     html += `
-      <div class="hist-item">
+      <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;">
         <div class="hist-left">
           <div class="hist-date">${formatDateLabel(dateKey)}</div>
           <div class="hist-bar-wrap">
