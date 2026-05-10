@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#020a14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hydro — Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #020a14;
+  --surface: #040f1e;
+  --surface2: #061528;
+  --border: #0d2240;
+  --border2: #102a50;
+  --accent: #0066ff;
+  --accent2: #004acc;
+  --glow: rgba(0,102,255,0.15);
+  --glow2: rgba(0,102,255,0.06);
+  --text: #e8f4ff;
+  --text2: #5a8ab8;
+  --text3: #2a4a6a;
+  --done: #00c87a;
+  --done-bg: #00140d;
+  --done-border: #004d2a;
+  --late: #ff5500;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,102,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,102,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 0 0 48px;
+  min-height: 100dvh;
+}
+
+/* HEADER */
+.header {
+  padding: 52px 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.h-brand {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: #0a2a5a;
+  background: #e8f4ff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.h-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.back-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+  margin-top: 4px;
+  text-decoration: none;
+  display: inline-block;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--text); background: var(--glow2); }
+
+/* SECTION */
+.section {
+  padding: 0 24px;
+  margin-bottom: 28px;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* POINTS CARD */
+.points-card {
+  background: linear-gradient(135deg, #0a1e3a 0%, #061228 100%);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 24px 28px;
+}
+
+.points-left {}
+.points-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.points-val {
+  font-family: var(--sans);
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.points-unit {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+}
+
+.points-badge {
+  font-size: 52px;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px rgba(255,200,0,0.4));
+}
+
+/* WEEKLY PCT */
+.weekly-pct-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 0 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weekly-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.weekly-ring svg { width: 72px; height: 72px; transform: rotate(-90deg); }
+.weekly-ring-track { fill: none; stroke: var(--surface2); stroke-width: 7; }
+.weekly-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 188;
+  stroke-dashoffset: 188;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1);
+}
+.weekly-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.weekly-info { flex: 1; }
+.weekly-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.weekly-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+}
+.weekly-medal {
+  font-size: 28px;
+  margin-top: 6px;
+}
+
+/* CALENDAR */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.cal-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cal-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.cal-circle.full { background: rgba(0,200,122,0.12); border-color: var(--done); }
+.cal-circle.partial { background: rgba(0,102,255,0.1); border-color: var(--accent); }
+.cal-circle.empty { background: rgba(255,85,0,0.06); border-color: var(--late-border); }
+.cal-circle.today { box-shadow: 0 0 0 2px var(--accent); }
+.cal-circle.future { opacity: 0.3; }
+
+.cal-pct {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+}
+
+/* BAR CHART */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  padding-bottom: 24px;
+  position: relative;
+}
+
+.bar-chart::after {
+  content: '';
+  position: absolute;
+  bottom: 24px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  flex: 1;
+  position: relative;
+}
+
+.bar-meta {
+  width: 100%;
+  background: var(--border);
+  border-radius: 3px 3px 0 0;
+  position: absolute;
+  bottom: 0;
+}
+
+.bar-real {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  position: absolute;
+  bottom: 0;
+  transition: height 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+
+.bar-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+  text-align: center;
+  position: absolute;
+  bottom: -20px;
+  width: 100%;
+}
+
+/* DAY DETAIL */
+.day-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.day-card.full { border-color: var(--done-border); background: var(--done-bg); }
+.day-card.today-card { border-color: var(--border2); background: var(--glow2); }
+
+.day-card-left { flex: 1; }
+.day-card-date {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.day-card-bar-wrap {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.day-card-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.day-card-stats {
+  text-align: right;
+  flex-shrink: 0;
+}
+.day-card-ml {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.day-card-pct {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.day-card-medal {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+/* MEDAL OVERLAY */
+.medal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,10,20,0.92);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.medal-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.medal-box {
+  text-align: center;
+  animation: medalPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes medalPop {
+  0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.medal-icon {
+  font-size: 96px;
+  display: block;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 24px rgba(255,200,0,0.6));
+  animation: medalFloat 2s ease-in-out infinite;
+}
+
+@keyframes medalFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.medal-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.medal-sub {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.medal-pts {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+}
+
+.medal-close {
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* PARTICLES */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  font-size: 20px;
+  animation: particleFly 1.5s ease-out forwards;
+}
+
+@keyframes particleFly {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-200px) scale(0.3); opacity: 0; }
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div>
+      <div class="h-brand">IASolution</div>
+      <div class="h-title">Stats 📊</div>
+    </div>
+    <a class="back-btn" href="index.html">← voltar</a>
+  </div>
+
+  <!-- POINTS -->
+  <div class="points-card" id="points-card">
+    <div class="points-left">
+      <div class="points-label">pontos totais</div>
+      <div class="points-val" id="pts-val">0</div>
+      <div class="points-unit">hydro points</div>
+    </div>
+    <div class="points-badge" id="pts-badge">💧</div>
+  </div>
+
+  <!-- WEEKLY PCT -->
+  <div class="weekly-pct-card">
+    <div class="weekly-ring">
+      <svg viewBox="0 0 72 72">
+        <circle class="weekly-ring-track" cx="36" cy="36" r="30"/>
+        <circle class="weekly-ring-fill" id="weekly-ring-fill" cx="36" cy="36" r="30"/>
+      </svg>
+      <div class="weekly-ring-text" id="weekly-pct-text">0%</div>
+    </div>
+    <div class="weekly-info">
+      <div class="weekly-title" id="weekly-title">Semana atual</div>
+      <div class="weekly-sub" id="weekly-sub">— de 7 dias com meta atingida</div>
+      <div class="weekly-medal" id="weekly-medal"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="section">
+    <div class="section-label">calendário — 7 dias</div>
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <!-- BAR CHART -->
+  <div class="section">
+    <div class="section-label">consumo vs meta (ml)</div>
+    <div class="bar-chart" id="bar-chart"></div>
+  </div>
+
+  <!-- DAY DETAIL -->
+  <div class="section">
+    <div class="section-label">detalhe por dia</div>
+    <div class="day-cards" id="day-cards"></div>
+  </div>
+
+</div>
+
+<!-- MEDAL OVERLAY -->
+<div class="medal-overlay" id="medal-overlay" onclick="closeMedal()">
+  <div class="medal-box">
+    <span class="medal-icon" id="medal-icon">🥇</span>
+    <div class="medal-title" id="medal-title">Meta atingida!</div>
+    <div class="medal-sub" id="medal-sub">Ouro diário</div>
+    <div class="medal-pts" id="medal-pts">+50 pts</div>
+    <button class="medal-close" onclick="closeMedal()">show!</button>
+  </div>
+</div>
+
+<script>
+// ─── LOAD STATE ──────────────────────────────────────────────
+const STORE_KEY = 'hydro_v2';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+let state = loadState() || {
+  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+  profile: { nome: '', peso: 70 },
+  checks: {},
+  lastDay: null,
+  history: {},
+  points: 0,
+  medals: {}
+};
+
+if (!state.history) state.history = {};
+if (!state.profile) state.profile = { nome: '', peso: 70 };
+if (!state.points) state.points = 0;
+if (!state.medals) state.medals = {};
+
+// ─── UTILS ──────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function dateStrFromOffset(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function formatLabel(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const days = ['dom','seg','ter','qua','qui','sex','sáb'];
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const today = todayStr();
+  const yest = dateStrFromOffset(-1);
+  if (dateStr === today) return 'hoje';
+  if (dateStr === yest) return 'ontem';
+  return days[dt.getDay()] + ' ' + d + '/' + (m < 10 ? '0'+m : m);
+}
+
+function shortDay(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const days = ['D','S','T','Q','Q','S','S'];
+  return days[dt.getDay()];
+}
+
+// ─── BUILD SLOTS COUNT ───────────────────────────────────────
+function totalSlotsForConfig(cfg) {
+  const meta = cfg.meta || state.config.meta;
+  const garrafa = cfg.garrafa || state.config.garrafa;
+  return Math.ceil(meta / garrafa);
+}
+
+// ─── GET DAY DATA ────────────────────────────────────────────
+function getDayData(dateStr) {
+  const today = todayStr();
+  if (dateStr === today) {
+    const n = Math.ceil(state.config.meta / state.config.garrafa);
+    const done = Object.values(state.checks).filter(Boolean).length;
+    return {
+      done,
+      total: n,
+      ml: done * state.config.garrafa,
+      meta: state.config.meta,
+      isToday: true,
+      isFuture: false
+    };
+  }
+  const h = state.history[dateStr];
+  if (!h) {
+    const d = new Date(dateStr.replace(/-/g, '/'));
+    const today2 = new Date();
+    today2.setHours(0,0,0,0);
+    return { done: 0, total: 0, ml: 0, meta: state.config.meta, isToday: false, isFuture: d > today2 };
+  }
+  const done = Object.values(h.checks).filter(Boolean).length;
+  return {
+    done,
+    total: h.totalSlots,
+    ml: done * h.garrafa,
+    meta: h.meta || (h.totalSlots * h.garrafa),
+    isToday: false,
+    isFuture: false
+  };
+}
+
+function getPct(data) {
+  if (!data.total || data.isFuture) return 0;
+  return Math.min(100, Math.round((data.ml / data.meta) * 100));
+}
+
+// ─── MEDAL LOGIC ─────────────────────────────────────────────
+function getDailyMedal(pct) {
+  if (pct >= 100) return { icon: '🥇', label: 'Ouro', pts: 50 };
+  if (pct >= 75)  return { icon: '🥈', label: 'Prata', pts: 20 };
+  if (pct >= 50)  return { icon: '🥉', label: 'Bronze', pts: 10 };
+  return null;
+}
+
+function getWeeklyMedal(fullDays, avgPct) {
+  if (fullDays === 7 && avgPct >= 100) return { icon: '💎', label: 'Diamante', pts: 500 };
+  if (fullDays >= 6) return { icon: '🥇', label: 'Ouro', pts: 200 };
+  if (fullDays >= 5) return { icon: '🥈', label: 'Prata', pts: 100 };
+  if (fullDays >= 4) return { icon: '🥉', label: 'Bronze', pts: 50 };
+  return null;
+}
+
+// ─── PARTICLES ───────────────────────────────────────────────
+function spawnParticles() {
+  const emojis = ['💧','✨','⭐','💦','🌟'];
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'particle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * window.innerWidth + 'px';
+      el.style.top = Math.random() * window.innerHeight * 0.7 + window.innerHeight * 0.2 + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }, i * 80);
+  }
+}
+
+// ─── SHOW MEDAL ──────────────────────────────────────────────
+function showMedal(medal, isWeekly) {
+  document.getElementById('medal-icon').textContent = medal.icon;
+  document.getElementById('medal-title').textContent = isWeekly ? 'Semana concluída!' : 'Meta diária!';
+  document.getElementById('medal-sub').textContent = medal.label + (isWeekly ? ' semanal' : ' diário');
+  document.getElementById('medal-pts').textContent = '+' + medal.pts + ' pts';
+  document.getElementById('medal-overlay').classList.add('show');
+  spawnParticles();
+}
+
+function closeMedal() {
+  document.getElementById('medal-overlay').classList.remove('show');
+}
+
+// ─── CHECK NEW MEDALS ────────────────────────────────────────
+function checkAndAwardMedals() {
+  const today = todayStr();
+  const todayData = getDayData(today);
+  const todayPct = getPct(todayData);
+  const todayMedal = getDailyMedal(todayPct);
+
+  // award daily medal if not yet awarded today
+  if (todayMedal && !state.medals[today]) {
+    state.medals[today] = todayMedal.label;
+    state.points = (state.points || 0) + todayMedal.pts;
+    saveState();
+    setTimeout(() => showMedal(todayMedal, false), 600);
+    return;
+  }
+
+  // weekly medal check
+  const weekKey = 'week_' + today.substring(0,7);
+  if (!state.medals[weekKey]) {
+    const last7 = Array.from({length:7}, (_,i) => dateStrFromOffset(-(6-i)));
+    const fullDays = last7.filter(d => getPct(getDayData(d)) >= 100).length;
+    const totalPct = last7.reduce((acc, d) => acc + getPct(getDayData(d)), 0) / 7;
+    const wMedal = getWeeklyMedal(fullDays, totalPct);
+    if (wMedal && fullDays >= 4) {
+      state.medals[weekKey] = wMedal.label;
+      state.points = (state.points || 0) + wMedal.pts;
+      saveState();
+      setTimeout(() => showMedal(wMedal, true), 600);
+    }
+  }
+}
+
+// ─── RENDER ──────────────────────────────────────────────────
+function render() {
+  const last7 = Array.from({length:7}, (_,i) => dateStrFromOffset(-(6-i)));
+  const today = todayStr();
+
+  // ── Points
+  const pts = state.points || 0;
+  document.getElementById('pts-val').textContent = pts.toLocaleString('pt-BR');
+  let badge = '💧';
+  if (pts >= 2000) badge = '💎';
+  else if (pts >= 1000) badge = '🥇';
+  else if (pts >= 500) badge = '🥈';
+  else if (pts >= 100) badge = '🥉';
+  document.getElementById('pts-badge').textContent = badge;
+
+  // ── Weekly stats
+  const fullDays = last7.filter(d => getPct(getDayData(d)) >= 100).length;
+  const avgPct = Math.round(last7.reduce((acc,d) => acc + getPct(getDayData(d)), 0) / 7);
+  const wMedal = getWeeklyMedal(fullDays, avgPct);
+  const wCirc = 188;
+  const wFill = document.getElementById('weekly-ring-fill');
+  wFill.style.strokeDashoffset = wCirc - (avgPct / 100) * wCirc;
+  wFill.style.stroke = avgPct >= 100 ? 'var(--done)' : 'var(--accent)';
+  document.getElementById('weekly-pct-text').textContent = avgPct + '%';
+  document.getElementById('weekly-sub').textContent = fullDays + ' de 7 dias com meta atingida';
+  document.getElementById('weekly-medal').textContent = wMedal ? wMedal.icon : '';
+
+  // ── Calendar
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  last7.forEach(dateStr => {
+    const data = getDayData(dateStr);
+    const pct = getPct(data);
+    const isToday = dateStr === today;
+    const isFuture = data.isFuture;
+
+    let circleClass = 'cal-circle';
+    let icon = '';
+    if (isFuture) { circleClass += ' future'; icon = '·'; }
+    else if (!data.total) { circleClass += ' empty'; icon = '○'; }
+    else if (pct >= 100) { circleClass += ' full'; icon = '✓'; }
+    else if (pct > 0) { circleClass += ' partial'; icon = Math.round(pct/10)*10 > 0 ? '' : '○'; }
+    else { circleClass += ' empty'; icon = '○'; }
+    if (isToday) circleClass += ' today';
+
+    const medal = getDailyMedal(pct);
+
+    const div = document.createElement('div');
+    div.className = 'cal-day';
+    div.innerHTML = `
+      <div class="cal-label">${shortDay(dateStr)}</div>
+      <div class="${circleClass}">${medal ? medal.icon : icon}</div>
+      <div class="cal-pct">${isFuture || !data.total ? '—' : pct + '%'}</div>
+    `;
+    cal.appendChild(div);
+  });
+
+  // ── Bar chart
+  const chart = document.getElementById('bar-chart');
+  chart.innerHTML = '';
+  const maxMeta = Math.max(...last7.map(d => getDayData(d).meta || state.config.meta));
+  last7.forEach(dateStr => {
+    const data = getDayData(dateStr);
+    const pct = getPct(data);
+    const metaH = 88; // max bar height px
+    const metaPx = metaH;
+    const realPx = data.isFuture || !data.total ? 0 : Math.round((data.ml / data.meta) * metaH);
+    const color = pct >= 100 ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
+
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.innerHTML = `
+      <div class="bar-wrap">
+        <div class="bar-meta" style="height:${metaPx}px;opacity:0.12;"></div>
+        <div class="bar-real" style="height:${realPx}px;background:${color};opacity:0.85;"></div>
+        <div class="bar-label">${shortDay(dateStr)}</div>
+      </div>
+    `;
+    chart.appendChild(col);
+  });
+
+  // ── Day cards
+  const cards = document.getElementById('day-cards');
+  cards.innerHTML = '';
+  [...last7].reverse().forEach(dateStr => {
+    const data = getDayData(dateStr);
+    const pct = getPct(data);
+    const medal = getDailyMedal(pct);
+    const isToday = dateStr === today;
+
+    if (data.isFuture) return;
+
+    let cardClass = 'day-card';
+    if (pct >= 100) cardClass += ' full';
+    if (isToday) cardClass += ' today-card';
+
+    const barColor = pct >= 100 ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
+
+    const card = document.createElement('div');
+    card.className = cardClass;
+    card.innerHTML = `
+      <div class="day-card-left">
+        <div class="day-card-date">${formatLabel(dateStr)}${isToday ? ' · hoje' : ''}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);">
+          ${data.total ? data.done + '/' + data.total + ' garrafas' : 'sem dados'}
+        </div>
+        <div class="day-card-bar-wrap">
+          <div class="day-card-bar" style="width:${pct}%;background:${barColor};"></div>
+        </div>
+      </div>
+      <div class="day-card-stats">
+        <div class="day-card-ml">${data.ml.toLocaleString('pt-BR')} ml</div>
+        <div class="day-card-pct">${data.total ? pct + '%' : '—'}</div>
+      </div>
+      <div class="day-card-medal">${medal ? medal.icon : (data.total && pct < 50 && !data.isFuture && pct > 0 ? '💧' : '')}</div>
+    `;
+    cards.appendChild(card);
+  });
+
+  if (cards.children.length === 0) {
+    cards.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💧</div>
+        <div class="empty-text">nenhum dado ainda<br>comece a marcar suas garrafas!</div>
+      </div>
+    `;
+  }
+
+  checkAndAwardMedals();
+}
+
+render();
+</script>
+</body>
+</html>
