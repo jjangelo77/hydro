@@ -970,7 +970,12 @@ function renderHistory() {
   const keys = Object.keys(state.history).sort().reverse(); // mais recente primeiro
 
   if (keys.length === 0) {
-    container.innerHTML = '';
+    container.innerHTML = `
+      <div class="section-label" style="margin-top:28px;cursor:pointer;" onclick="window.location.href='history.html'">
+        <span>histórico — 7 dias</span>
+        <span style="color:var(--accent);font-size:10px;">ver →</span>
+      </div>
+    `;
     return;
   }
 
