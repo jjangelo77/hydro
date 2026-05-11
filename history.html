@@ -135,7 +135,7 @@ body::before {
   margin: 0 24px 28px;
 }
 
-.points-left {}
+
 .points-label {
   font-family: var(--mono);
   font-size: 10px;
@@ -851,7 +851,8 @@ function render() {
   // ── Day cards
   const cards = document.getElementById('day-cards');
   cards.innerHTML = '';
-  [...last7].reverse().forEach(dateStr => {
+  const allDays = [todayStr(), ...Object.keys(state.history).sort().reverse()];
+  allDays.forEach(dateStr => {
     const data = getDayData(dateStr);
     const pct = getPct(data);
     const medal = getDailyMedal(pct);
