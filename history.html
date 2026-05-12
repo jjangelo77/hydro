@@ -649,39 +649,7 @@ function closeMedal() {
   document.getElementById('medal-overlay').classList.remove('show');
 }
 
-function checkAndAwardMedals() {
-  const today = todayStr();
-  const todayData = getDayData(today);
-  const todayPct = getPct(todayData);
-  const todayMedal = getDailyMedal(todayPct);
-  if (todayMedal && !state.medals[today]) {
-    state.medals[today] = todayMedal.label;
-    state.points = (state.points || 0) + todayMedal.pts;
-    saveState();
-    setTimeout(() => showMedal(todayMedal, false), 600);
-    return;
-  }
-  const weekKey = 'week_' + today.substring(0,7);
-  if (!state.medals[weekKey]) {
-    const last7 = Array.from({length:7}, (_,i) => {
-      const d = new Date(); d.setDate(d.getDate()-(6-i));
-      return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-    });
-    const fullDays = last7.filter(d => getPct(getDayData(d)) >= 100).length;
-    const avgPct = Math.round(last7.reduce((a,d) => a + getPct(getDayData(d)), 0) / 7);
-    if (fullDays >= 4) {
-      let wMedal;
-      if (fullDays === 7 && avgPct >= 100) wMedal = { icon: '💎', label: 'Diamante', pts: 500 };
-      else if (fullDays >= 6) wMedal = { icon: '🥇', label: 'Ouro', pts: 200 };
-      else if (fullDays >= 5) wMedal = { icon: '🥈', label: 'Prata', pts: 100 };
-      else wMedal = { icon: '🥉', label: 'Bronze', pts: 50 };
-      state.medals[weekKey] = wMedal.label;
-      state.points = (state.points || 0) + wMedal.pts;
-      saveState();
-      setTimeout(() => showMedal(wMedal, true), 600);
-    }
-  }
-}
+
 
 function openDayModal(d) {
   const ds = viewYear+'-'+(viewMonth+1)+'-'+d;
