@@ -521,15 +521,7 @@ select:focus { border-color: var(--accent); }
   </div>
 </div>
 
-<div class="medal-overlay" id="medal-overlay">
-  <div class="medal-box">
-    <span class="medal-icon" id="medal-icon">🥇</span>
-    <div class="medal-title" id="medal-title">Meta atingida!</div>
-    <div class="medal-sub" id="medal-sub">Ouro diário</div>
-    <div class="medal-pts" id="medal-pts">+50 pts</div>
-    <button class="medal-close" onclick="closeMedal()" style="position:relative;z-index:1002;">fechar</button>
-  </div>
-</div>
+
 
 <script>
 const STORE_KEY = 'hydro_v2';
@@ -619,34 +611,6 @@ function buildSelectors() {
     yHTML += `<option value="${y}" ${y===viewYear?'selected':''}>${y}</option>`;
   }
   document.getElementById('sel-year').innerHTML = yHTML;
-}
-
-function spawnParticles() {
-  const emojis = ['💧','✨','⭐','💦','🌟'];
-  for (let i = 0; i < 12; i++) {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'particle';
-      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      el.style.left = Math.random() * window.innerWidth + 'px';
-      el.style.top = (Math.random() * window.innerHeight * 0.6 + window.innerHeight * 0.2) + 'px';
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1500);
-    }, i * 80);
-  }
-}
-
-function showMedal(medal, isWeekly) {
-  document.getElementById('medal-icon').textContent = medal.icon;
-  document.getElementById('medal-title').textContent = isWeekly ? 'Semana concluída!' : 'Meta diária!';
-  document.getElementById('medal-sub').textContent = medal.label + (isWeekly ? ' semanal' : ' diário');
-  document.getElementById('medal-pts').textContent = '+' + medal.pts + ' pts';
-  document.getElementById('medal-overlay').classList.add('show');
-  spawnParticles();
-}
-
-function closeMedal() {
-  document.getElementById('medal-overlay').classList.remove('show');
 }
 
 
