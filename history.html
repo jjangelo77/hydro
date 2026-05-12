@@ -279,8 +279,117 @@ select:focus { border-color: var(--accent); }
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-text { font-family: var(--mono); font-size: 12px; color: var(--text3); letter-spacing: 0.08em; line-height: 1.8; }
 
-/* MEDAL */
-.medal-overlay {
+/* DAY DETAIL MODAL */
+.day-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(2,10,20,0.88);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.day-modal-overlay.show { opacity: 1; pointer-events: all; }
+
+.day-modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 24px 40px;
+  width: 100%;
+  max-width: 430px;
+  transform: translateY(40px);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.day-modal-overlay.show .day-modal-box { transform: translateY(0); }
+
+.day-modal-handle {
+  width: 36px; height: 3px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.day-modal-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.day-modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.day-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.day-modal-stat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.day-modal-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.day-modal-stat-val.blue { color: var(--accent); }
+.day-modal-stat-val.green { color: var(--done); }
+
+.day-modal-stat-lbl {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.day-modal-bar-wrap {
+  height: 4px;
+  background: var(--surface2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.day-modal-bar { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+.day-modal-close {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: border-color 0.15s;
+}
+.day-modal-close:hover { border-color: var(--border2); color: var(--text2); }
+
+.cal-cell:not(.empty-cell):not(.future-cell) { cursor: pointer; }
+.cal-cell:not(.empty-cell):not(.future-cell):active { transform: scale(0.92); }
+
   position: fixed; inset: 0;
   background: rgba(2,10,20,0.92);
   z-index: 1000;
@@ -381,6 +490,35 @@ select:focus { border-color: var(--accent); }
 
   <div class="section-label">detalhe por dia</div>
   <div class="day-cards" id="day-cards"></div>
+</div>
+
+<div class="day-modal-overlay" id="day-modal" onclick="closeDayModal(event)">
+  <div class="day-modal-box">
+    <div class="day-modal-handle"></div>
+    <div class="day-modal-date" id="dm-date">—</div>
+    <div class="day-modal-title">
+      <span id="dm-title">—</span>
+      <span id="dm-medal"></span>
+    </div>
+    <div class="day-modal-stats">
+      <div class="day-modal-stat">
+        <div class="day-modal-stat-val blue" id="dm-garrafas">—</div>
+        <div class="day-modal-stat-lbl">garrafas</div>
+      </div>
+      <div class="day-modal-stat">
+        <div class="day-modal-stat-val" id="dm-ml">—</div>
+        <div class="day-modal-stat-lbl">ml bebidos</div>
+      </div>
+      <div class="day-modal-stat">
+        <div class="day-modal-stat-val green" id="dm-pts">—</div>
+        <div class="day-modal-stat-lbl">pontos</div>
+      </div>
+    </div>
+    <div class="day-modal-bar-wrap">
+      <div class="day-modal-bar" id="dm-bar"></div>
+    </div>
+    <button class="day-modal-close" onclick="closeDayModal()">fechar</button>
+  </div>
 </div>
 
 <div class="medal-overlay" id="medal-overlay" onclick="closeMedal()">
@@ -545,6 +683,35 @@ function checkAndAwardMedals() {
   }
 }
 
+function openDayModal(d) {
+  const ds = viewYear+'-'+(viewMonth+1)+'-'+d;
+  const data = getDayData(ds);
+  const pct = getPct(data);
+  const medal = getDailyMedal(pct);
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const weekDays = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const dt = new Date(viewYear, viewMonth, d);
+  const dd = d < 10 ? '0'+d : d;
+  const mm = viewMonth+1 < 10 ? '0'+(viewMonth+1) : viewMonth+1;
+  const barColor = pct >= 100 ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
+
+  document.getElementById('dm-date').textContent = weekDays[dt.getDay()] + ', ' + dd + '/' + mm + '/' + viewYear;
+  document.getElementById('dm-title').textContent = data.total ? pct + '% da meta' : 'sem dados';
+  document.getElementById('dm-medal').textContent = medal ? medal.icon : (data.total ? '💧' : '');
+  document.getElementById('dm-garrafas').textContent = data.total ? data.done + '/' + data.total : '—';
+  document.getElementById('dm-ml').textContent = data.total ? data.ml.toLocaleString('pt-BR') : '—';
+  document.getElementById('dm-pts').textContent = medal ? '+' + medal.pts : '0';
+  document.getElementById('dm-bar').style.width = pct + '%';
+  document.getElementById('dm-bar').style.background = barColor;
+
+  document.getElementById('day-modal').classList.add('show');
+}
+
+function closeDayModal(e) {
+  if (e && e.target !== document.getElementById('day-modal')) return;
+  document.getElementById('day-modal').classList.remove('show');
+}
+
 function render() {
   const today = todayStr();
   const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -609,10 +776,11 @@ function render() {
     const cell = document.createElement('div');
     cell.className = cls;
     cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-pct">${data.total && !data.isFuture ? pct+'%' : ''}</div>`;
+    if (!data.isFuture) cell.onclick = () => openDayModal(d);
     grid.appendChild(cell);
   }
 
-  // Day cards
+  // Day cards — last 7 days with data only
   const cards = document.getElementById('day-cards');
   cards.innerHTML = '';
   const daysWithData = [];
@@ -620,6 +788,7 @@ function render() {
     const { data, pct, ds } = cache[d];
     if (data.isFuture || !data.total) continue;
     daysWithData.push({ d, ds, data, pct });
+    if (daysWithData.length >= 7) break;
   }
 
   if (daysWithData.length === 0) {

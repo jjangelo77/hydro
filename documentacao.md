@@ -5,7 +5,7 @@
 **Stack**
 - HTML/CSS/JS puro — dois arquivos (`index.html` + `history.html`)
 - PWA: `manifest.json` + `service-worker.js`
-- Persistência: `localStorage` (sem banco de dados)
+- Persistência: `localStorage` (sem banco de dados) — até 5 anos de histórico (~365KB)
 - Hospedagem: GitHub Pages (`github.com/jjangelo77/hydro`)
 - Domínio: `hydro.iasolution.cloud` via CNAME na Hostinger → `jjangelo77.github.io`
 
@@ -28,33 +28,41 @@ iasolution_water/
 
 - Tela de senha com autenticação salva no `localStorage`
 - Tela de configuração em página separada (sem modal)
-- Perfil: nome, peso — meta calculada automaticamente (`peso × 35ml`)
+- Perfil: nome e peso — meta calculada automaticamente (`peso × 35ml`, arredondada para múltiplos de 250ml)
 - Meta ajustável manualmente após cálculo automático
 - Configuração: horário início/fim, meta diária (ml), volume da garrafa (ml)
-- Cálculo automático de slots: divide a janela de horas pelo número de garrafas
+- Cálculo automático de slots: divide a janela de horas pelo número de garrafas necessárias
 - Check por slot — marca/desmarca com toque
 - Ring de progresso animado com % e ml bebidos
 - Stats: garrafas feitas, ml restantes, horário do próximo slot
 - Meta diária sempre visível no header: `sex · 9 mai · meta 4.000 ml`
 - Saudação personalizada: `Olá, Jonas` em azul abaixo do H2O
 - Banner de meta atingida
-- Card de histórico sempre visível no final (mesmo sem dados), clicável → `history.html`
-- Histórico automático dos últimos 7 dias (salva ao virar o dia)
+- Card de histórico sempre visível no final — clicável → `history.html`
+- Histórico automático salvo ao virar o dia (até 5 anos / 1.825 dias)
 - Notificações push nativas no horário de cada slot
 - Reset manual do dia
-- Instalável como PWA via Safari (iOS) ou Chrome (Android)
 
 ---
 
 **Funcionalidades — history.html**
 
 - Card de pontos totais com badge dinâmico: 💧→🥉→🥈→🥇→💎
-- Ring semanal com % médio dos últimos 7 dias e medalha da semana
-- Calendário 7 dias com ícone de medalha por dia
-- Gráfico de barras: consumo vs meta por dia
-- Cards detalhados por dia: garrafas, ml, % e medalha
+- Filtro de mês/ano — setas ‹ › para navegar + clique no nome abre seletor
+- Resumo mensal: dias completos, média % do mês, pontos ganhos no mês
+- Calendário mensal em grid 7 colunas — cada dia com cor e % indicativo
+- Cards de detalhe por dia: garrafas, ml, %, pontos e medalha
 - Animação com partículas ao ganhar medalha
 - Botão voltar → `index.html`
+
+---
+
+**Calendário mensal — código de cores**
+- 🟢 Verde — 100% da meta atingida
+- 🔵 Azul — parcial (> 0%)
+- 🔴 Vermelho — 0% (dia registrado mas sem consumo)
+- ⬛ Cinza escuro — sem dados
+- Desbotado — dias futuros
 
 ---
 
@@ -66,7 +74,7 @@ Diário:
 - 🥇 Ouro — 100% — 50 pts
 
 Semanal:
-- 🥉 Bronze — ≥ 4 dias com meta — 50 pts
+- 🥉 Bronze — ≥ 4 dias completos — 50 pts
 - 🥈 Prata — ≥ 5 dias — 100 pts
 - 🥇 Ouro — ≥ 6 dias — 200 pts
 - 💎 Diamante — 7 dias + média 100% — 500 pts
@@ -75,8 +83,8 @@ Badge do card de pontos:
 - 💧 0–99 pts
 - 🥉 100–499 pts
 - 🥈 500–999 pts
-- 🥇 1000–1999 pts
-- 💎 2000+ pts
+- 🥇 1.000–1.999 pts
+- 💎 2.000+ pts
 
 ---
 
@@ -99,21 +107,21 @@ sex · 9 mai · meta 4.000 ml  ← data + meta fixa
 
 **Lógica de negócio**
 - Meta calculada: `peso × 35ml`, arredondada para múltiplos de 250ml
-- Meta pode ser sobrescrita manualmente nas configurações
+- Meta pode ser sobrescrita manualmente
 - Slots: `janela de horas ÷ número de garrafas`
 - Exemplo padrão: 4L/dia, 750ml/garrafa → 6 slots de ~2h35min (07:30–23:00)
 - Notificação push dispara no início de cada slot
-- Histórico reseta automaticamente na virada do dia e salva o dia anterior
-- Máximo de 7 dias de histórico no `localStorage`
-- Pontos e medalhas salvos no `localStorage` — futuro: Supabase para ranking entre usuários
+- Histórico salvo automaticamente na virada do dia
+- Máximo de 1.825 dias (~5 anos) no `localStorage`
+- Pontos e medalhas salvos no `localStorage`
 
 ---
 
 **Observações importantes**
 - Cada browser tem `localStorage` próprio — dados não sincronizam entre Chrome e Safari
 - PWA instalado pelo Safari no iOS é o recomendado
-- Ao limpar cache ou reinstalar o PWA os dados locais são perdidos
-- Migração para Supabase resolve persistência e competição entre usuários
+- Limpar cache ou reinstalar o PWA apaga os dados locais
+- Migração para Supabase resolve persistência, sincronização e competição entre usuários
 
 ---
 
