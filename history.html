@@ -521,13 +521,13 @@ select:focus { border-color: var(--accent); }
   </div>
 </div>
 
-<div class="medal-overlay" id="medal-overlay" onclick="closeMedal()">
+<div class="medal-overlay" id="medal-overlay">
   <div class="medal-box">
     <span class="medal-icon" id="medal-icon">🥇</span>
     <div class="medal-title" id="medal-title">Meta atingida!</div>
     <div class="medal-sub" id="medal-sub">Ouro diário</div>
     <div class="medal-pts" id="medal-pts">+50 pts</div>
-    <button class="medal-close" onclick="closeMedal()">show!</button>
+    <button class="medal-close" onclick="closeMedal()">fechar!</button>
   </div>
 </div>
 
@@ -823,8 +823,7 @@ function render() {
     });
   }
 
-  checkAndAwardMedals();
-}
+  }
 
 render();
 </script>
