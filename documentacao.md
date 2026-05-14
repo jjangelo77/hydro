@@ -38,6 +38,8 @@ iasolution_water/
 - Meta diária sempre visível no header: `sex · 9 mai · meta 4.000 ml`
 - Saudação personalizada: `Olá, Jonas` em azul abaixo do H2O
 - Banner de meta atingida
+- Animação de medalha com partículas ao atingir meta diária ou semanal
+- Sistema de pontos salvo no `localStorage`
 - Card de histórico sempre visível no final — clicável → `history.html`
 - Histórico automático salvo ao virar o dia (até 5 anos / 1.825 dias)
 - Notificações push nativas no horário de cada slot
@@ -50,9 +52,9 @@ iasolution_water/
 - Card de pontos totais com badge dinâmico: 💧→🥉→🥈→🥇→💎
 - Filtro de mês/ano — setas ‹ › para navegar + clique no nome abre seletor
 - Resumo mensal: dias completos, média % do mês, pontos ganhos no mês
-- Calendário mensal em grid 7 colunas — cada dia com cor e % indicativo
-- Cards de detalhe por dia: garrafas, ml, %, pontos e medalha
-- Animação com partículas ao ganhar medalha
+- Calendário mensal em grid 7 colunas — cada dia clicável
+- Modal de detalhe ao clicar no dia: data, %, garrafas, ml, pontos e medalha
+- Cards dos últimos 7 dias com dados do mês selecionado
 - Botão voltar → `index.html`
 
 ---
@@ -106,7 +108,7 @@ sex · 9 mai · meta 4.000 ml  ← data + meta fixa
 ---
 
 **Lógica de negócio**
-- Meta calculada: `peso × 35ml`, arredondada para múltiplos de 250ml
+- Meta calculada: `peso × 37ml`, arredondada para múltiplos de 250ml
 - Meta pode ser sobrescrita manualmente
 - Slots: `janela de horas ÷ número de garrafas`
 - Exemplo padrão: 4L/dia, 750ml/garrafa → 6 slots de ~2h35min (07:30–23:00)
@@ -114,6 +116,7 @@ sex · 9 mai · meta 4.000 ml  ← data + meta fixa
 - Histórico salvo automaticamente na virada do dia
 - Máximo de 1.825 dias (~5 anos) no `localStorage`
 - Pontos e medalhas salvos no `localStorage`
+- Medalhas e animações disparadas apenas no `index.html`
 
 ---
 

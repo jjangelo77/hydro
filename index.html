@@ -968,12 +968,20 @@ function render() {
 // ─── RENDER HISTÓRICO ────────────────────────────────────────
 function renderHistory() {
   const container = document.getElementById('history-section');
-  const keys = Object.keys(state.history).sort().reverse(); // mais recente primeiro
+  const keys = Object.keys(state.history).sort().reverse();
 
-  if (keys.length === 0) {
+  const yest = (() => {
+    const x = new Date();
+    x.setDate(x.getDate()-1);
+    return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();
+  })();
+
+  const h = state.history[yest];
+
+  if (!h) {
     container.innerHTML = `
       <div class="section-label" style="margin-top:28px;">
-        <span>histórico — 7 dias</span>
+        <span>ontem</span>
       </div>
       <div class="history-list">
         <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;">
@@ -994,42 +1002,35 @@ function renderHistory() {
     return;
   }
 
-  let html = `
+  const done  = Object.values(h.checks).filter(Boolean).length;
+  const total = h.totalSlots;
+  const pct   = Math.round((done / total) * 100);
+  const ml    = done * h.garrafa;
+  const full  = done === total;
+  const color = full ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
+  const badgeClass = full ? 'full' : pct >= 50 ? 'half' : 'low';
+
+  container.innerHTML = `
     <div class="section-label" style="margin-top:28px;">
-      <span>histórico — 7 dias</span>
+      <span>ontem</span>
+      <span style="color:var(--accent);font-size:10px;cursor:pointer;" onclick="window.location.href='history.html'">ver histórico →</span>
     </div>
     <div class="history-list">
-  `;
-
-
-  keys.forEach(dateKey => {
-    const h = state.history[dateKey];
-    const done  = Object.values(h.checks).filter(Boolean).length;
-    const total = h.totalSlots;
-    const pct   = Math.round((done / total) * 100);
-    const ml    = done * h.garrafa;
-    const metaMl= h.meta || (total * h.garrafa);
-    const full  = done === total;
-
-    html += `
-      <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;">
+      <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;border-color:${full ? 'var(--done-border)' : pct >= 50 ? 'var(--border2)' : 'var(--late-border)'};background:${full ? 'var(--done-bg)' : pct >= 50 ? 'var(--glow2)' : 'var(--late-bg)'};">
         <div class="hist-left">
-          <div class="hist-date">${formatDateLabel(dateKey)}</div>
+          <div class="hist-date" style="color:${color};">ontem · ${done}/${total} garrafas</div>
           <div class="hist-bar-wrap">
-            <div class="hist-bar-inner" style="width:${pct}%;background:${full ? 'var(--done)' : 'var(--accent)'}"></div>
+            <div class="hist-bar-inner" style="width:${pct}%;background:${color}"></div>
           </div>
         </div>
         <div class="hist-right">
-          <div class="hist-val ${full ? 'green' : ''}">${done}/${total}</div>
-          <div class="hist-ml">${ml.toLocaleString('pt-BR')} ml</div>
+          <div class="hist-val ${full ? 'green' : ''}">${ml.toLocaleString('pt-BR')} ml</div>
+          <div class="hist-ml">${pct}%</div>
         </div>
-        <div class="hist-badge ${full ? 'full' : pct >= 50 ? 'half' : 'low'}">${pct}%</div>
+        <div class="hist-badge ${badgeClass}">${full ? '🥇' : pct >= 75 ? '🥈' : pct >= 50 ? '🥉' : '💧'}</div>
       </div>
-    `;
-  });
-
-  html += `</div>`;
-  container.innerHTML = html;
+    </div>
+  `;
 }
 
 // ─── TOGGLE ─────────────────────────────────────────────────
