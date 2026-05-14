@@ -984,16 +984,21 @@ function renderHistory() {
         <span>ontem</span>
       </div>
       <div class="history-list">
-        <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;">
+        <div class="hist-item" onclick="window.location.href='history.html'" style="
+          cursor:pointer;
+          background: linear-gradient(135deg, #1f1a0a, #29220d);
+          border-color: #524314;
+          box-shadow: 0 0 12px rgba(255,204,0,0.15);
+        ">
           <div class="hist-left">
-            <div class="hist-date">nenhum registro ainda</div>
+            <div class="hist-date" style="color:#ffcc00;">nenhum registro ainda</div>
             <div class="hist-bar-wrap">
-              <div class="hist-bar-inner" style="width:0%;background:var(--accent)"></div>
+              <div class="hist-bar-inner" style="width:0%;background:#ffcc00"></div>
             </div>
           </div>
           <div class="hist-right">
-            <div class="hist-val">—</div>
-            <div class="hist-ml">0 ml</div>
+            <div class="hist-val" style="color:#f5e6b3;">—</div>
+            <div class="hist-ml" style="color:#f5e6b3;">0 ml</div>
           </div>
           <div class="hist-badge half">0%</div>
         </div>
@@ -1007,25 +1012,29 @@ function renderHistory() {
   const pct   = Math.round((done / total) * 100);
   const ml    = done * h.garrafa;
   const full  = done === total;
-  const color = full ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
   const badgeClass = full ? 'full' : pct >= 50 ? 'half' : 'low';
 
   container.innerHTML = `
     <div class="section-label" style="margin-top:28px;">
       <span>ontem</span>
-      <span style="color:var(--accent);font-size:10px;cursor:pointer;" onclick="window.location.href='history.html'">ver histórico →</span>
+      <span style="color:#ffcc00;font-size:10px;cursor:pointer;" onclick="window.location.href='history.html'">ver histórico →</span>
     </div>
     <div class="history-list">
-      <div class="hist-item" onclick="window.location.href='history.html'" style="cursor:pointer;border-color:${full ? 'var(--done-border)' : pct >= 50 ? 'var(--border2)' : 'var(--late-border)'};background:${full ? 'var(--done-bg)' : pct >= 50 ? 'var(--glow2)' : 'var(--late-bg)'};">
+      <div class="hist-item" onclick="window.location.href='history.html'" style="
+        cursor:pointer;
+        background: linear-gradient(135deg, #1f1a0a, #29220d);
+        border-color: #524314;
+        box-shadow: 0 0 12px rgba(255,204,0,0.15);
+      ">
         <div class="hist-left">
-          <div class="hist-date" style="color:${color};">ontem · ${done}/${total} garrafas</div>
+          <div class="hist-date" style="color:#ffcc00;">ontem · ${done}/${total} garrafas</div>
           <div class="hist-bar-wrap">
-            <div class="hist-bar-inner" style="width:${pct}%;background:${color}"></div>
+            <div class="hist-bar-inner" style="width:${pct}%;background:#ffcc00"></div>
           </div>
         </div>
         <div class="hist-right">
-          <div class="hist-val ${full ? 'green' : ''}">${ml.toLocaleString('pt-BR')} ml</div>
-          <div class="hist-ml">${pct}%</div>
+          <div class="hist-val" style="color:#f5e6b3;">${ml.toLocaleString('pt-BR')} ml</div>
+          <div class="hist-ml" style="color:#f5e6b3;">${pct}%</div>
         </div>
         <div class="hist-badge ${badgeClass}">${full ? '🥇' : pct >= 75 ? '🥈' : pct >= 50 ? '🥉' : '💧'}</div>
       </div>
