@@ -51,3 +51,51 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
     }
   });
 }
+
+// ─── DB HELPERS ────────────────────────────────────────────────────────────
+async function dbLoadUser(userId) {
+  const { data } = await sb.from('hydro_users').select('*').eq('user_id', userId).single();
+  return data;
+}
+async function dbSaveUser(userId, config, profile) {
+  await sb.from('hydro_users').upsert({
+    user_id:          userId,
+    nome:             profile.nome,
+    peso:             profile.peso,
+    meta_ml:          config.meta,
+    volume_garrafa_ml:config.garrafa,
+    hora_inicio:      config.inicio,
+    hora_fim:         config.fim,
+    atualizado_em:    new Date().toISOString()
+  }, { onConflict: 'user_id' });
+}
+async function dbLoadDays(userId) {
+  const { data } = await sb.from('hydro_days').select('*').eq('user_id', userId);
+  return data || [];
+}
+async function dbSaveDay(userId, dateStr, slots, config) {
+  const marcados = Object.values(slots).filter(Boolean).length;
+  const ml       = marcados * config.garrafa;
+  const pct      = Math.round((ml / config.meta) * 100);
+  const pts      = marcados * 10;
+  const medalha  = pct >= 100 ? 'ouro' : pct >= 75 ? 'prata' : pct >= 50 ? 'bronze' : null;
+  await sb.from('hydro_days').upsert({
+    user_id:       userId,
+    data:          dateStr,
+    ml_bebidos:    ml,
+    percentual:    pct,
+    garrafas:      marcados,
+    pontos:        pts,
+    medalha:       medalha,
+    slots:         slots,
+    atualizado_em: new Date().toISOString()
+  }, { onConflict: 'user_id,data' });
+  // atualiza pontos totais
+  const { data: dias } = await sb.from('hydro_days').select('pontos').eq('user_id', userId);
+  const total = (dias || []).reduce((s, d) => s + d.pontos, 0);
+  await sb.from('hydro_points').upsert({
+    user_id:       userId,
+    pontos_total:  total,
+    atualizado_em: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+}

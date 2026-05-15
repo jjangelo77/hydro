@@ -827,29 +827,48 @@ input[type="range"] {
 const STORE_KEY   = 'hydro_v2';
 const MAX_HISTORY = 1825; // dias
 
-// ─── STATE ──────────────────────────────────────────────────
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return null;
-}
-
-function saveState() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
-}
-
-let state = loadState() || {
-  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
-  profile: { nome: '', nasc: '', peso: 70 },
-  checks: {},
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let state = {
+  config:  { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+  profile: { nome: '', peso: 70 },
+  checks:  {},
   lastDay: null,
   history: {}
 };
+let currentUserId = null;
 
-if (!state.history) state.history = {};
-if (!state.profile) state.profile = { nome: '', nasc: '', peso: 70 };
+async function loadState(userId) {
+  currentUserId = userId;
+  // carrega perfil/config
+  const u = await dbLoadUser(userId);
+  if (u) {
+    state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
+    state.profile = { nome: u.nome || '', peso: u.peso || 70 };
+  }
+  // carrega histórico
+  const dias = await dbLoadDays(userId);
+  state.history = {};
+  dias.forEach(d => {
+    state.history[d.data] = {
+      ml: d.ml_bebidos, pct: d.percentual,
+      garrafas: d.garrafas, pontos: d.pontos,
+      medalha: d.medalha, slots: d.slots || {}
+    };
+  });
+  // checks do dia atual
+  const hoje = new Date().toISOString().slice(0,10);
+  if (state.history[hoje]) {
+    state.checks = state.history[hoje].slots;
+  }
+  state.lastDay = hoje;
+}
+
+async function saveState() {
+  if (!currentUserId) return;
+  const hoje = new Date().toISOString().slice(0,10);
+  await dbSaveUser(currentUserId, state.config, state.profile);
+  await dbSaveDay(currentUserId, hoje, state.checks, state.config);
+}
 
 // ─── UTILS ──────────────────────────────────────────────────
 function toMin(t) {
@@ -1211,13 +1230,13 @@ function scheduleNotifs() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js').catch(() => {});
 }
-
 // ─── INIT ───────────────────────────────────────────────────
 let currentUser = null;
 
 initAuth(
-  (user) => {
+  async (user) => {
     currentUser = user;
+    await loadState(user.id);
     document.getElementById('login-screen').classList.add('hidden');
     document.querySelector('.app').style.display = '';
     checkNotifBanner();
@@ -1231,6 +1250,3 @@ initAuth(
     document.querySelector('.app').style.display = 'none';
   }
 );
-</script>
-</body>
-</html>
