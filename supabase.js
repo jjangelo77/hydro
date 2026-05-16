@@ -3,7 +3,12 @@ const SUPA_URL  = 'https://bxzbabkngdveobfewuxp.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4emJhYmtuZ2R2ZW9iZmV3dXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzkwNDUsImV4cCI6MjA2NDkxNTA0NX0.Fc5bcB9RLiXZqEADLt6a_KwJKOTgr2qGQ-VcLwsyGzo';
 
 const { createClient } = supabase;
-const sb = createClient(SUPA_URL, SUPA_ANON);
+const sb = createClient(SUPA_URL, SUPA_ANON, {
+  AUTH: {
+    FLOWTYPE: 'PKCE',
+    DETECTSESSIONINURL: TRUE
+  }
+});
 
 // ─── AUTH HELPERS ────────────────────────────────────────────
 async function getSession() {
