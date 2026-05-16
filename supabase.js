@@ -51,7 +51,7 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
 
 // ─── DB HELPERS ────────────────────────────────────────────────────────────
 async function dbLoadUser(userId) {
-  const { data } = await sb.from('hydro_users').select('*').eq('user_id', userId).single();
+  const { data } = await sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle();
   return data;
 }
 async function dbSaveUser(userId, config, profile) {
