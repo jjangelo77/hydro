@@ -45,21 +45,27 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
   };
 
   log('initAuth start');
+  let resolved = false;
 
   sb.auth.onAuthStateChange(async (event, session) => {
     log('authChange: ' + event + ' ' + (session?.user?.id || 'null'));
     if (event === 'INITIAL_SESSION') {
       if (session) {
+        resolved = true;
         log('INITIAL_SESSION → authenticated');
         await onAuthenticated(session.user);
       } else {
-        log('INITIAL_SESSION → unauthenticated');
-        onUnauthenticated();
+        if (!resolved) {
+          log('INITIAL_SESSION → unauthenticated');
+          onUnauthenticated();
+        }
       }
     } else if (event === 'SIGNED_IN' && session) {
+      resolved = true;
       log('SIGNED_IN → authenticated');
       await onAuthenticated(session.user);
     } else if (event === 'SIGNED_OUT') {
+      resolved = false;
       log('SIGNED_OUT → unauthenticated');
       onUnauthenticated();
     }
