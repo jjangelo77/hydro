@@ -44,9 +44,9 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
 
   // Escuta mudanças (login/logout em tempo real)
   sb.auth.onAuthStateChange((_event, session) => {
-    if (session) {
+    if (_event === 'SIGNED_IN' && session) {
       onAuthenticated(session.user);
-    } else {
+    } else if (_event === 'SIGNED_OUT') {
       onUnauthenticated();
     }
   });
