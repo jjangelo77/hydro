@@ -33,17 +33,26 @@ async function signOut() {
 // ─── AUTH STATE LISTENER ─────────────────────────────────────
 // Chamado em cada página para decidir mostrar login ou app
 async function initAuth(onAuthenticated, onUnauthenticated) {
-  console.log('[initAuth] iniciando...');
+  const log = (msg) => {
+    const logs = JSON.parse(sessionStorage.getItem('hydro_log') || '[]');
+    logs.push(new Date().toISOString().slice(11,19) + ' ' + msg);
+    sessionStorage.setItem('hydro_log', JSON.stringify(logs));
+  };
+
+  log('initAuth start');
   const { data: { session } } = await sb.auth.getSession();
-  console.log('[initAuth] getSession:', session?.user?.id || 'null');
+  log('getSession: ' + (session?.user?.id || 'null'));
   if (session) {
+    log('calling onAuthenticated');
     await onAuthenticated(session.user);
+    log('onAuthenticated done');
   } else {
+    log('calling onUnauthenticated');
     onUnauthenticated();
   }
 
   sb.auth.onAuthStateChange(async (_event, session) => {
-    console.log('[onAuthStateChange]', _event, session?.user?.id || 'null');
+    log('authChange: ' + _event + ' ' + (session?.user?.id || 'null'));
     if (_event === 'SIGNED_IN' && session) {
       await onAuthenticated(session.user);
     }
