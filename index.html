@@ -866,8 +866,8 @@ async function loadState(userId) {
 async function saveState() {
   if (!window.currentUserId) return;
   const hoje = new Date().toISOString().slice(0,10);
-  await dbSaveUser(currentUserId, state.config, state.profile);
-  await dbSaveDay(currentUserId, hoje, state.checks, state.config);
+  await dbSaveUser(window.currentUserId, state.config, state.profile);
+  await dbSaveDay(window.currentUserId, hoje, state.checks, state.config);
 }
 
 // ─── UTILS ──────────────────────────────────────────────────
