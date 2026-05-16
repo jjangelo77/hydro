@@ -33,22 +33,17 @@ async function signOut() {
 // ─── AUTH STATE LISTENER ─────────────────────────────────────
 // Chamado em cada página para decidir mostrar login ou app
 async function initAuth(onAuthenticated, onUnauthenticated) {
-  let initialized = false;
-
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    initialized = true;
     await onAuthenticated(session.user);
   } else {
     onUnauthenticated();
   }
 
   sb.auth.onAuthStateChange(async (_event, session) => {
-    if (_event === 'SIGNED_IN' && session && !initialized) {
-      initialized = true;
+    if (_event === 'SIGNED_IN' && session) {
       await onAuthenticated(session.user);
     } else if (_event === 'SIGNED_OUT') {
-      initialized = false;
       onUnauthenticated();
     }
   });
