@@ -34,27 +34,29 @@ async function signOut() {
 // Chamado em cada página para decidir mostrar login ou app
 async function initAuth(onAuthenticated, onUnauthenticated) {
   const log = (msg) => {
-    const logs = JSON.parse(sessionStorage.getItem('hydro_log') || '[]');
+    const logs = JSON.parse(localStorage.getItem('hydro_log') || '[]');
     logs.push(new Date().toISOString().slice(11,19) + ' ' + msg);
-    sessionStorage.setItem('hydro_log', JSON.stringify(logs));
+    localStorage.setItem('hydro_log', JSON.stringify(logs.slice(-30)));
   };
 
   log('initAuth start');
-  const { data: { session } } = await sb.auth.getSession();
-  log('getSession: ' + (session?.user?.id || 'null'));
-  if (session) {
-    log('calling onAuthenticated');
-    await onAuthenticated(session.user);
-    log('onAuthenticated done');
-  } else {
-    log('calling onUnauthenticated');
-    onUnauthenticated();
-  }
 
-  sb.auth.onAuthStateChange(async (_event, session) => {
-    log('authChange: ' + _event + ' ' + (session?.user?.id || 'null'));
-    if (_event === 'SIGNED_IN' && session) {
+  sb.auth.onAuthStateChange(async (event, session) => {
+    log('authChange: ' + event + ' ' + (session?.user?.id || 'null'));
+    if (event === 'INITIAL_SESSION') {
+      if (session) {
+        log('INITIAL_SESSION → authenticated');
+        await onAuthenticated(session.user);
+      } else {
+        log('INITIAL_SESSION → unauthenticated');
+        onUnauthenticated();
+      }
+    } else if (event === 'SIGNED_IN' && session) {
+      log('SIGNED_IN → authenticated');
       await onAuthenticated(session.user);
+    } else if (event === 'SIGNED_OUT') {
+      log('SIGNED_OUT → unauthenticated');
+      onUnauthenticated();
     }
   });
 }
