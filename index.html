@@ -869,8 +869,9 @@ async function saveState() {
   await dbSaveUser(window.currentUserId, state.config, state.profile);
   await dbSaveDay(window.currentUserId, hoje, state.checks, state.config);
 }
-
-// ─── UTILS ──────────────────────────────────────────────────
+window.loadState = loadState;
+window.saveState = saveState;
+// ─── UTILS
 function toMin(t) {
   const [h,m] = t.split(':').map(Number);
   return h*60+m;
