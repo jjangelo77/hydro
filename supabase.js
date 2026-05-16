@@ -43,9 +43,8 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
   sb.auth.onAuthStateChange(async (_event, session) => {
     if (_event === 'SIGNED_IN' && session) {
       await onAuthenticated(session.user);
-    } else if (_event === 'SIGNED_OUT') {
-      onUnauthenticated();
     }
+    // ignora SIGNED_OUT para evitar loop no redirect OAuth
   });
 }
 
