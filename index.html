@@ -835,10 +835,10 @@ let state = {
   lastDay: null,
   history: {}
 };
-let currentUserId = null;
+window.currentUserId = null;
 
 async function loadState(userId) {
-  currentUserId = userId;
+  window.currentUserId = userId;
   // carrega perfil/config
   const u = await dbLoadUser(userId);
   if (u) {
@@ -864,7 +864,7 @@ async function loadState(userId) {
 }
 
 async function saveState() {
-  if (!currentUserId) return;
+  if (!window.currentUserId) return;
   const hoje = new Date().toISOString().slice(0,10);
   await dbSaveUser(currentUserId, state.config, state.profile);
   await dbSaveDay(currentUserId, hoje, state.checks, state.config);
