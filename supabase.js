@@ -4,9 +4,9 @@ const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_ANON, {
-  AUTH: {
-    FLOWTYPE: 'PKCE',
-    DETECTSESSIONINURL: TRUE
+  auth: {
+    flowType: 'pkce',
+    detectSessionInUrl: true
   }
 });
 
