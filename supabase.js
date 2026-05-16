@@ -33,7 +33,9 @@ async function signOut() {
 // ─── AUTH STATE LISTENER ─────────────────────────────────────
 // Chamado em cada página para decidir mostrar login ou app
 async function initAuth(onAuthenticated, onUnauthenticated) {
+  console.log('[initAuth] iniciando...');
   const { data: { session } } = await sb.auth.getSession();
+  console.log('[initAuth] getSession:', session?.user?.id || 'null');
   if (session) {
     await onAuthenticated(session.user);
   } else {
@@ -41,10 +43,10 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
   }
 
   sb.auth.onAuthStateChange(async (_event, session) => {
+    console.log('[onAuthStateChange]', _event, session?.user?.id || 'null');
     if (_event === 'SIGNED_IN' && session) {
       await onAuthenticated(session.user);
     }
-    // ignora SIGNED_OUT para evitar loop no redirect OAuth
   });
 }
 
