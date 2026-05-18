@@ -11,10 +11,6 @@
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-
-<script src="/supabase-sdk.js"></script>
-<script src="/supabase.js"></script>
-
 <style>
 :root {
   --bg: #020a14;
@@ -688,35 +684,6 @@ input[type="range"] {
 </head>
 <body>
 
-<style>
-#login-screen {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--bg);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 32px; padding: 40px 24px;
-}
-#login-screen.hidden { display: none; }
-.login-brand { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--text3); }
-.login-title { font-family: var(--sans); font-size: 48px; font-weight: 800; color: var(--text); letter-spacing: -2px; }
-.login-title span { color: var(--accent); }
-.login-sub { font-family: var(--mono); font-size: 13px; color: var(--text2); text-align: center; max-width: 260px; line-height: 1.5; }
-.btn-google { display: flex; align-items: center; gap: 12px; background: #fff; color: #1a1a1a; border: none; border-radius: 12px; padding: 14px 28px; font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; box-shadow: 0 4px 24px rgba(0,102,255,0.18); }
-.btn-google svg { width: 20px; height: 20px; }
-.login-footer { font-family: var(--mono); font-size: 10px; color: var(--text3); text-align: center; }
-</style>
-
-<div id="login-screen">
-  <div class="login-brand">IASOLUTION</div>
-  <div class="login-title">H<span>2</span>O</div>
-  <div class="login-sub">rastreie sua hidratação diária com precisão</div>
-  <button class="btn-google" onclick="signInGoogle()">
-    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-    Entrar com Google
-  </button>
-  <div class="login-footer">seus dados ficam salvos na nuvem · sincroniza em qualquer dispositivo</div>
-</div>
-
 <div class="app">
   <div class="toast" id="toast"></div>
 
@@ -827,51 +794,31 @@ input[type="range"] {
 const STORE_KEY   = 'hydro_v2';
 const MAX_HISTORY = 1825; // dias
 
-// ─── STATE ──────────────────────────────────────────────────────────────────
-let state = {
-  config:  { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
-  profile: { nome: '', peso: 70 },
-  checks:  {},
+// ─── STATE ──────────────────────────────────────────────────
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+let state = loadState() || {
+  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+  profile: { nome: '', nasc: '', peso: 70 },
+  checks: {},
   lastDay: null,
   history: {}
 };
-window.currentUserId = null;
 
-async function loadState(userId) {
-  window.currentUserId = userId;
-  // carrega perfil/config
-  const u = await dbLoadUser(userId);
-  if (u) {
-    state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
-    state.profile = { nome: u.nome || '', peso: u.peso || 70 };
-  }
-  // carrega histórico
-  const dias = await dbLoadDays(userId);
-  state.history = {};
-  dias.forEach(d => {
-    state.history[d.data] = {
-      ml: d.ml_bebidos, pct: d.percentual,
-      garrafas: d.garrafas, pontos: d.pontos,
-      medalha: d.medalha, slots: d.slots || {}
-    };
-  });
-  // checks do dia atual
-  const hoje = new Date().toISOString().slice(0,10);
-  if (state.history[hoje]) {
-    state.checks = state.history[hoje].slots;
-  }
-  state.lastDay = hoje;
-}
+if (!state.history) state.history = {};
+if (!state.profile) state.profile = { nome: '', nasc: '', peso: 70 };
 
-async function saveState() {
-  if (!window.currentUserId) return;
-  const hoje = new Date().toISOString().slice(0,10);
-  await dbSaveUser(window.currentUserId, state.config, state.profile);
-  await dbSaveDay(window.currentUserId, hoje, state.checks, state.config);
-}
-window.loadState = loadState;
-window.saveState = saveState;
-// ─── UTILS
+// ─── UTILS ──────────────────────────────────────────────────
 function toMin(t) {
   const [h,m] = t.split(':').map(Number);
   return h*60+m;
@@ -1231,23 +1178,12 @@ function scheduleNotifs() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js').catch(() => {});
 }
-// ─── INIT ───────────────────────────────────────────────────
-let currentUser = null;
 
-initAuth(
-  async (user) => {
-    currentUser = user;
-    await loadState(user.id);
-    document.getElementById('login-screen').classList.add('hidden');
-    document.querySelector('.app').style.display = '';
-    checkNotifBanner();
-    render();
-    setInterval(render, 60 * 1000);
-    scheduleNotifs();
-  },
-  () => {
-    currentUser = null;
-    document.getElementById('login-screen').classList.remove('hidden');
-    document.querySelector('.app').style.display = 'none';
-  }
-);
+// ─── INIT ───────────────────────────────────────────────────
+checkNotifBanner();
+render();
+setInterval(render, 60 * 1000);
+scheduleNotifs();
+</script>
+</body>
+</html>
