@@ -488,7 +488,7 @@ select:focus { border-color: var(--accent); }
     <div class="cal-grid" id="cal-grid"></div>
   </div>
 
-  <div class="section-label">detalhe por dia</div>
+  <div class="section-label">progresso semanal</div>
   <div class="day-cards" id="day-cards"></div>
 </div>
 
@@ -653,7 +653,13 @@ function render() {
   buildSelectors();
 
   // Points
-  const pts = state.points || 0;
+  const pts = object.keys(state.history).reduce((total, date) => {
+  const h = state.history[date];
+  const done = object.values(h.checks).filter(boolean).length;
+  const pct = math.min(100, math.round((done / h.totalslots) * 100));
+  const medal = pct >= 100 ? 50 : pct >= 75 ? 20 : pct >= 50 ? 10 : 0;
+  return total + medal;
+}, 0);
   document.getElementById('pts-val').textContent = pts.toLocaleString('pt-BR');
   let badge = '💧';
   if (pts >= 2000) badge = '💎';
@@ -708,53 +714,59 @@ function render() {
     const cell = document.createElement('div');
     cell.className = cls;
     cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-pct">${data.total && !data.isFuture ? pct+'%' : ''}</div>`;
-    if (!data.isFuture) cell.onclick = () => openDayModal(d);
-    grid.appendChild(cell);
-  }
-
-  // Day cards — last 7 days with data only
+     
+    // Card único com resumo dos últimos 7 dias (com dados)
   const cards = document.getElementById('day-cards');
   cards.innerHTML = '';
   const daysWithData = [];
   for (let d = daysInMonth; d >= 1; d--) {
     const { data, pct, ds } = cache[d];
     if (data.isFuture || !data.total) continue;
-    daysWithData.push({ d, ds, data, pct });
+    daysWithData.push({ data, pct, ds });
     if (daysWithData.length >= 7) break;
   }
 
   if (daysWithData.length === 0) {
-    cards.innerHTML = `<div class="empty-state"><div class="empty-icon">💧</div><div class="empty-text">nenhum dado para<br>${monthNames[viewMonth]} ${viewYear}</div></div>`;
+    cards.innerHTML = `<div class="empty-state"><div class="empty-icon">💧</div><div class="empty-text">nenhum dado nos últimos 7 dias</div></div>`;
   } else {
-    daysWithData.forEach(({ d, ds, data, pct }) => {
-      const medal = getDailyMedal(pct);
-      const isToday = ds === today;
-      const barColor = pct >= 100 ? 'var(--done)' : pct >= 50 ? 'var(--accent)' : 'var(--late)';
-      let cardClass = 'day-card';
-      if (pct >= 100) cardClass += ' full';
-      if (isToday) cardClass += ' today-card';
-      const dt = new Date(viewYear, viewMonth, d);
-      const wday = weekDays[dt.getDay()];
-      const dd = d < 10 ? '0'+d : d;
-      const mm = viewMonth+1 < 10 ? '0'+(viewMonth+1) : viewMonth+1;
-      const card = document.createElement('div');
-      card.className = cardClass;
-      card.innerHTML = `
-        <div class="day-card-left">
-          <div class="day-card-date">${wday}, ${dd}/${mm}${isToday ? ' · hoje' : ''}</div>
-          <div class="day-card-info">${data.done}/${data.total} garrafas · ${data.ml.toLocaleString('pt-BR')} ml</div>
-          <div class="day-card-bar-wrap"><div class="day-card-bar" style="width:${pct}%;background:${barColor};"></div></div>
-        </div>
-        <div class="day-card-stats">
-          <div class="day-card-pct">${pct}%</div>
-          <div class="day-card-pts">${medal ? '+'+medal.pts+' pts' : '0 pts'}</div>
-        </div>
-        <div class="day-card-medal">${medal ? medal.icon : '💧'}</div>
-      `;
-      cards.appendChild(card);
-    });
-  }
+    let totalPct = 0;
+    let totalPoints = 0;
+    let completeDays = 0;
 
+    daysWithData.forEach(day => {
+      const pct = day.pct;
+      totalPct += pct;
+      if (pct >= 100) completeDays++;
+      const medal = getDailyMedal(pct);
+      if (medal) totalPoints += medal.pts;
+    });
+    const avgPct = Math.round(totalPct / daysWithData.length);
+
+    const weeklyMedal = (() => {
+      if (completeDays >= 7 && avgPct === 100) return { icon: '💎', pts: 500, label: 'Diamante' };
+      if (completeDays >= 6) return { icon: '🥇', pts: 200, label: 'Ouro Semanal' };
+      if (completeDays >= 5) return { icon: '🥈', pts: 100, label: 'Prata Semanal' };
+      if (completeDays >= 4) return { icon: '🥉', pts: 50, label: 'Bronze Semanal' };
+      return null;
+    })();
+
+    const summaryCard = document.createElement('div');
+    summaryCard.className = 'points-card';
+    summaryCard.style.margin = '0';
+    summaryCard.style.marginBottom = '24px';
+    summaryCard.innerHTML = `
+      <div>
+        <div class="points-label">últimos 7 dias</div>
+        <div class="points-val">${avgPct}%</div>
+        <div class="points-unit">média de conclusão</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px;">
+          ${completeDays}/7 dias completos<br>
+          ${totalPoints} pts totais
+        </div>
+      </div>
+      <div class="points-badge">${weeklyMedal ? weeklyMedal.icon : '📊'}</div>
+    `;
+    cards.appendChild(summaryCard);
   }
 
 render();
