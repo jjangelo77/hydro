@@ -389,7 +389,7 @@ select:focus { border-color: var(--accent); }
 
 .cal-cell:not(.empty-cell):not(.future-cell) { cursor: pointer; }
 .cal-cell:not(.empty-cell):not(.future-cell):active { transform: scale(0.92); }
-
+.medal-overlay {
   position: fixed; inset: 0;
   background: rgba(2,10,20,0.92);
   z-index: 1000;
@@ -652,14 +652,21 @@ function render() {
   document.getElementById('filter-label').textContent = monthNames[viewMonth] + ' ' + viewYear;
   buildSelectors();
 
-  // Points
-  const pts = object.keys(state.history).reduce((total, date) => {
-  const h = state.history[date];
-  const done = object.values(h.checks).filter(boolean).length;
-  const pct = math.min(100, math.round((done / h.totalslots) * 100));
+ // Points
+  
+  const historyComHoje = { ...state.history };
+  if (!historyComHoje[today]) {
+  const n = Math.ceil(state.config.meta / state.config.garrafa);
+  const done = Object.values(state.checks).filter(Boolean).length;
+  historyComHoje[today] = { checks: state.checks, totalSlots: n, garrafa: state.config.garrafa, meta: state.config.meta };
+}
+  const pts = Object.keys(historyComHoje).reduce((total, date) => {
+  const h = historyComHoje[date];
+  const done = Object.values(h.checks).filter(Boolean).length;
+  const pct = Math.min(100, Math.round((done / h.totalSlots) * 100));
   const medal = pct >= 100 ? 50 : pct >= 75 ? 20 : pct >= 50 ? 10 : 0;
   return total + medal;
-}, 0);
+  }, 0);
   document.getElementById('pts-val').textContent = pts.toLocaleString('pt-BR');
   let badge = '💧';
   if (pts >= 2000) badge = '💎';
@@ -714,8 +721,11 @@ function render() {
     const cell = document.createElement('div');
     cell.className = cls;
     cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-pct">${data.total && !data.isFuture ? pct+'%' : ''}</div>`;
-     
-    // Card único com resumo dos últimos 7 dias (com dados)
+    cell.onclick = () => openDayModal(d);
+    grid.appendChild(cell);
+  }
+
+  // Card único com resumo dos últimos 7 dias (com dados)
   const cards = document.getElementById('day-cards');
   cards.innerHTML = '';
   const daysWithData = [];
@@ -768,6 +778,7 @@ function render() {
     `;
     cards.appendChild(summaryCard);
   }
+}
 
 render();
 </script>
