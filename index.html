@@ -920,7 +920,7 @@ function render() {
   // Next slot
   const nm = nowMin();
   const nextSlot = slots.find((s, i) => !state.checks[i] && toMin(s.from) > nm);
-  document.getElementById('s-prox').textContent = nextSlot ? nextSlot.from : (done === n ? '✓' : '—');
+  document.getElementById('s-prox').textContent = nextSlot ? nextSlot.from : (done === n ? '✓' : state.config.fim);
 
   // Complete banner
   document.getElementById('complete-banner').classList.toggle('show', done === n);
