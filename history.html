@@ -725,60 +725,60 @@ function render() {
     grid.appendChild(cell);
   }
 
-  // Card único com resumo dos últimos 7 dias (com dados)
+  // Resumo semanal (semana atual: domingo a sábado)
   const cards = document.getElementById('day-cards');
   cards.innerHTML = '';
-  const daysWithData = [];
-  for (let d = daysInMonth; d >= 1; d--) {
-    const { data, pct, ds } = cache[d];
-    if (data.isFuture || !data.total) continue;
-    daysWithData.push({ data, pct, ds });
-    if (daysWithData.length >= 7) break;
+
+  const todayDate = new Date();
+  todayDate.setHours(0,0,0,0);
+  const dowToday = todayDate.getDay(); // 0=dom, 6=sab
+  const weekStart = new Date(todayDate);
+  weekStart.setDate(todayDate.getDate() - dowToday); // domingo da semana atual
+
+  const weekDays2 = [];
+  for (let i = 0; i < 7; i++) {
+    const d2 = new Date(weekStart);
+    d2.setDate(weekStart.getDate() + i);
+    const ds2 = d2.getFullYear()+'-'+(d2.getMonth()+1)+'-'+d2.getDate();
+    const isFuture = d2 > todayDate;
+    const data2 = isFuture ? { done:0, total:0, ml:0, meta: state.config.meta, isFuture:true } : getDayData(ds2);
+    const pct2 = getPct(data2);
+    weekDays2.push({ ds: ds2, data: data2, pct: pct2, isFuture });
   }
 
-  if (daysWithData.length === 0) {
-    cards.innerHTML = `<div class="empty-state"><div class="empty-icon">💧</div><div class="empty-text">nenhum dado nos últimos 7 dias</div></div>`;
-  } else {
-    let totalPct = 0;
-    let totalPoints = 0;
-    let completeDays = 0;
+  const completeDays = weekDays2.filter(d => !d.isFuture && d.pct >= 100).length;
+  const activeDays2  = weekDays2.filter(d => !d.isFuture).length;
+  const totalPct2    = weekDays2.filter(d => !d.isFuture).reduce((s,d) => s + d.pct, 0);
+  const avgPct2      = activeDays2 ? Math.round(totalPct2 / activeDays2) : 0;
+  const totalPoints  = weekDays2.reduce((s,d) => {
+    const m = getDailyMedal(d.pct);
+    return s + (m && !d.isFuture ? m.pts : 0);
+  }, 0);
 
-    daysWithData.forEach(day => {
-      const pct = day.pct;
-      totalPct += pct;
-      if (pct >= 100) completeDays++;
-      const medal = getDailyMedal(pct);
-      if (medal) totalPoints += medal.pts;
-    });
-    const avgPct = Math.round(totalPct / daysWithData.length);
+  const weeklyMedal = (() => {
+    if (completeDays >= 7) return { icon: '💎', pts: 500, label: 'Diamante' };
+    if (completeDays >= 6) return { icon: '🥇', pts: 200, label: 'Ouro Semanal' };
+    if (completeDays >= 5) return { icon: '🥈', pts: 100, label: 'Prata Semanal' };
+    if (completeDays >= 4) return { icon: '🥉', pts: 50, label: 'Bronze Semanal' };
+    return null;
+  })();
 
-    const weeklyMedal = (() => {
-      if (completeDays >= 7 && avgPct === 100) return { icon: '💎', pts: 500, label: 'Diamante' };
-      if (completeDays >= 6) return { icon: '🥇', pts: 200, label: 'Ouro Semanal' };
-      if (completeDays >= 5) return { icon: '🥈', pts: 100, label: 'Prata Semanal' };
-      if (completeDays >= 4) return { icon: '🥉', pts: 50, label: 'Bronze Semanal' };
-      return null;
-    })();
-
-    const summaryCard = document.createElement('div');
-    summaryCard.className = 'points-card';
-    summaryCard.style.margin = '0';
-    summaryCard.style.marginBottom = '24px';
-    summaryCard.innerHTML = `
-      <div>
-        <div class="points-label">últimos 7 dias</div>
-        <div class="points-val">${avgPct}%</div>
-        <div class="points-unit">média de conclusão</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px;">
-          ${completeDays}/7 dias completos<br>
-          ${totalPoints} pts totais
-        </div>
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'points-card';
+  summaryCard.style.margin = '0';
+  summaryCard.style.marginBottom = '24px';
+  summaryCard.innerHTML = `
+    <div>
+      <div class="points-label">semana atual</div>
+      <div class="points-val">${completeDays}/7</div>
+      <div class="points-unit">dias completos</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px;">
+        média ${avgPct2}% · ${totalPoints} pts
       </div>
-      <div class="points-badge">${weeklyMedal ? weeklyMedal.icon : '📊'}</div>
-    `;
-    cards.appendChild(summaryCard);
-  }
-}
+    </div>
+    <div class="points-badge">${weeklyMedal ? weeklyMedal.icon : '📊'}</div>
+  `;
+  cards.appendChild(summaryCard);
 
 render();
 </script>
