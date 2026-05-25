@@ -61,7 +61,7 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
     } else {
       onUnauthenticated();
     }
-  }, 500);
+  }, 1000);
 }
 
 async function signInGoogle() {
