@@ -1,105 +1,79 @@
 // ─── SUPABASE CLIENT ────────────────────────────────────────
-const SUPA_URL  = 'https://bxzbabkngdveobfewuxp.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4emJhYmtuZ2R2ZW9iZmV3dXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzkwNDUsImV4cCI6MjA2NDkxNTA0NX0.Fc5bcB9RLiXZqEADLt6a_KwJKOTgr2qGQ-VcLwsyGzo';
+var SUPA_URL  = 'https://bxzbabkngdveobfewuxp.supabase.co';
+var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4emJhYmtuZ2R2ZW9iZmV3dXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzkwNDUsImV4cCI6MjA2NDkxNTA0NX0.Fc5bcB9RLiXZqEADLt6a_KwJKOTgr2qGQ-VcLwsyGzo';
 
-const { createClient } = supabase;
-const sb = createClient(SUPA_URL, SUPA_ANON, {
+var sb = supabase.createClient(SUPA_URL, SUPA_ANON, {
   auth: { flowType: 'implicit', detectSessionInUrl: true }
 });
 
 // ─── AUTH ────────────────────────────────────────────────────
-// Guarda callbacks para quando o DOM estiver pronto
-window._authCallbacks = { onAuth: null, onUnauth: null };
-window._authSession   = null;
-window._authResolved  = false;
-window._authProcessing = false;
-
-sb.auth.onAuthStateChange(async (event, session) => {
-  const log = (msg) => {
-    const logs = JSON.parse(localStorage.getItem('hydro_log') || '[]');
+function initAuth(onAuthenticated, onUnauthenticated) {
+  var log = function(msg) {
+    var logs = JSON.parse(localStorage.getItem('hydro_log') || '[]');
     logs.push(new Date().toISOString().slice(11,19) + ' ' + msg);
     localStorage.setItem('hydro_log', JSON.stringify(logs.slice(-30)));
   };
-  log('event: ' + event + ' session: ' + (session?.user?.id || 'null'));
 
-  if (event === 'SIGNED_IN' && session) {
-    if (window._authProcessing || window._authResolved) return;
-    window._authProcessing = true;
-    window._authSession    = session;
-    window._authResolved   = true;
-    if (window._authCallbacks.onAuth) await window._authCallbacks.onAuth(session.user);
-    window._authProcessing = false;
-  } else if (event === 'SIGNED_OUT') {
-    window._authSession    = null;
-    window._authResolved   = false;
-    window._authProcessing = false;
-    if (window._authCallbacks.onUnauth) window._authCallbacks.onUnauth();
-  }
-});
-
-async function initAuth(onAuthenticated, onUnauthenticated) {
-  window._authCallbacks.onAuth   = onAuthenticated;
-  window._authCallbacks.onUnauth = onUnauthenticated;
-
-  // sempre verifica sessão diretamente
-  const { data } = await sb.auth.getSession();
-  if (data.session) {
-    if (!window._authProcessing) {
-      window._authProcessing = true;
-      window._authSession    = data.session;
-      window._authResolved   = true;
-      await onAuthenticated(data.session.user);
-      window._authProcessing = false;
+  sb.auth.getSession().then(function(result) {
+    var session = result.data.session;
+    log('getSession: ' + (session ? session.user.id : 'null'));
+    if (session) {
+      onAuthenticated(session.user);
+    } else {
+      onUnauthenticated();
+      sb.auth.onAuthStateChange(function(event, session) {
+        log('event: ' + event + ' session: ' + (session ? session.user.id : 'null'));
+        if (event === 'SIGNED_IN' && session) {
+          onAuthenticated(session.user);
+        }
+      });
     }
-  } else {
-    onUnauthenticated();
-  }
+  });
 }
 
-async function signInGoogle() {
-  await sb.auth.signInWithOAuth({
+function signInGoogle() {
+  sb.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin + window.location.pathname }
   });
 }
 
-async function signOut() {
-  await sb.auth.signOut();
-  window.location.reload();
+function signOut() {
+  sb.auth.signOut().then(function() { window.location.reload(); });
 }
 
 // ─── DB HELPERS ──────────────────────────────────────────────
-async function dbLoadUser(userId) {
-  const { data } = await sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle();
-  return data;
+function dbLoadUser(userId) {
+  return sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle().then(function(r) { return r.data; });
 }
-async function dbSaveUser(userId, config, profile) {
-  await sb.from('hydro_users').upsert({
+function dbSaveUser(userId, config, profile) {
+  return sb.from('hydro_users').upsert({
     user_id: userId, nome: profile.nome, peso: profile.peso,
     meta_ml: config.meta, volume_garrafa_ml: config.garrafa,
     hora_inicio: config.inicio, hora_fim: config.fim,
     atualizado_em: new Date().toISOString()
   }, { onConflict: 'user_id' });
 }
-async function dbLoadDays(userId) {
-  const { data } = await sb.from('hydro_days').select('*').eq('user_id', userId);
-  return data || [];
+function dbLoadDays(userId) {
+  return sb.from('hydro_days').select('*').eq('user_id', userId).then(function(r) { return r.data || []; });
 }
-async function dbSaveDay(userId, dateStr, slots, config) {
-  const marcados = Object.values(slots).filter(Boolean).length;
-  const n   = Math.ceil(config.meta / config.garrafa);
-  const ml  = marcados * config.garrafa;
-  const pct = Math.round((ml / config.meta) * 100);
-  const pts = marcados * 10;
-  const medalha = pct >= 100 ? 'ouro' : pct >= 75 ? 'prata' : pct >= 50 ? 'bronze' : null;
-  await sb.from('hydro_days').upsert({
+function dbSaveDay(userId, dateStr, slots, config) {
+  var marcados = Object.values(slots).filter(Boolean).length;
+  var n   = Math.ceil(config.meta / config.garrafa);
+  var ml  = marcados * config.garrafa;
+  var pct = Math.round((ml / config.meta) * 100);
+  var pts = marcados * 10;
+  var medalha = pct >= 100 ? 'ouro' : pct >= 75 ? 'prata' : pct >= 50 ? 'bronze' : null;
+  return sb.from('hydro_days').upsert({
     user_id: userId, data: dateStr, ml_bebidos: ml, percentual: pct,
-    garrafas: marcados, total_slots: n, pontos: pts, medalha,
-    slots, atualizado_em: new Date().toISOString()
-  }, { onConflict: 'user_id,data' });
-  const { data: dias } = await sb.from('hydro_days').select('pontos').eq('user_id', userId);
-  const total = (dias || []).reduce((s, d) => s + d.pontos, 0);
-  await sb.from('hydro_points').upsert({
-    user_id: userId, pontos_total: total, atualizado_em: new Date().toISOString()
-  }, { onConflict: 'user_id' });
+    garrafas: marcados, total_slots: n, pontos: pts, medalha: medalha,
+    slots: slots, atualizado_em: new Date().toISOString()
+  }, { onConflict: 'user_id,data' }).then(function() {
+    return sb.from('hydro_days').select('pontos').eq('user_id', userId).then(function(r) {
+      var total = (r.data || []).reduce(function(s, d) { return s + d.pontos; }, 0);
+      return sb.from('hydro_points').upsert({
+        user_id: userId, pontos_total: total, atualizado_em: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+    });
+  });
 }
