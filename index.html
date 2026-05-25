@@ -1254,13 +1254,10 @@ initAuth(
       
       
       var hoje = todayStr();
-      console.log('hoje:', hoje);
-      console.log('hoje:', hoje);
-      console.log('history keys:', Object.keys(state.history));
-      console.log('history hoje:', state.history[hoje]);
+      
       if (state.history[hoje]) {
         state.checks = state.history[hoje].checks;
-        console.log('checks carregados:', state.checks);
+        
       }
       state.lastDay = todayStr();
       saveState();
