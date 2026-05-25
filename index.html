@@ -690,7 +690,7 @@ input[type="range"] {
 </style>
 </head>
 <body>
-<div id="login-screen" style="position:fixed;inset:0;z-index:9999;background:var(--bg);overflow-y:auto;">
+<div id="login-screen" style="position:fixed;inset:0;z-index:9999;background:var(--bg);overflow-y:auto;display:none;">
   <div style="
     min-height: 100dvh;
     display: flex;
@@ -1267,7 +1267,7 @@ initAuth(
   },
   () => {
     currentUser = null;
-    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('login-screen').style.display = '';
     document.querySelector('.app').style.display = 'none';
   }
 );
