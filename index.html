@@ -1094,7 +1094,7 @@ function toggle(idx) {
   toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
   if (currentUser) {
     const hoje = new Date().toISOString().slice(0,10);
-    dbSaveDay(currentUser.id, hoje, state.checks, state.config)
+    dbSaveDay(currentUser.id, hoje, state.checks, state.config).then(r => { if(r && r.error) console.error(r.error); });
   }
   render();
 }
@@ -1251,7 +1251,7 @@ initAuth(
           meta: u ? u.meta_ml : state.config.meta
         };
       });
-      const hoje = new Date().toISOString().slice(0,10);
+      
       console.log('hoje:', hoje);
       console.log('history keys:', Object.keys(state.history));
       console.log('history hoje:', state.history[hoje]);
@@ -1259,7 +1259,7 @@ initAuth(
         state.checks = state.history[hoje].checks;
         console.log('checks carregados:', state.checks);
       }
-      state.lastDay = hoje;
+      state.lastDay = todayStr();
       saveState();
       document.getElementById('login-screen').classList.add('hidden');
       document.querySelector('.app').style.display = '';
