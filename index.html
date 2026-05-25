@@ -828,8 +828,8 @@ input[type="range"] {
 
 <script>
 // ─── CONSTANTS ──────────────────────────────────────────────
-const STORE_KEY   = 'hydro_v2';
-const MAX_HISTORY = 1825; // dias
+var STORE_KEY   = 'hydro_v2';
+var MAX_HISTORY = 1825; // dias
 
 // ─── STATE ──────────────────────────────────────────────────
 function loadState() {
@@ -844,7 +844,7 @@ function saveState() {
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
 }
 
-let state = loadState() || {
+var state = loadState() || {
   config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
   profile: { nome: '', nasc: '', peso: 70 },
   checks: {},
@@ -1157,7 +1157,7 @@ function saveConfig() {
   }
 
 // ─── TOAST ──────────────────────────────────────────────────
-let toastTimer;
+var toastTimer;
 function toast(msg, green = false) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1191,7 +1191,7 @@ function requestNotif() {
   });
 }
 
-let notifTimers = [];
+var notifTimers = [];
 function scheduleNotifs() {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   notifTimers.forEach(clearTimeout);
@@ -1224,7 +1224,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── INIT ───────────────────────────────────────────────────
-let currentUser = null;
+var currentUser = null;
 
 initAuth(
   async (user) => {
