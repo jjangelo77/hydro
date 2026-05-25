@@ -431,6 +431,9 @@ select:focus { border-color: var(--accent); }
 </style>
 </head>
 <body>
+<div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="font-family:var(--mono);font-size:12px;color:var(--text3);letter-spacing:0.1em;">carregando...</div>
+</div>
 
 <div class="page">
   <div class="header">
@@ -784,7 +787,10 @@ function render() {
 }
 
 initAuth(
-  function(user) { render(); },
+  function(user) {
+    document.getElementById('loading').style.display = 'none';
+    render();
+  },
   function() { window.location.href = 'index.html'; }
 );
 </script>
