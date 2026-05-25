@@ -1182,10 +1182,17 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── INIT ───────────────────────────────────────────────────
-checkNotifBanner();
-render();
-setInterval(render, 60 * 1000);
-scheduleNotifs();
-</script>
-</body>
-</html>
+initAuth(
+  async (user) => {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.querySelector('.app').style.display = '';
+    checkNotifBanner();
+    render();
+    setInterval(render, 60 * 1000);
+    scheduleNotifs();
+  },
+  () => {
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.querySelector('.app').style.display = 'none';
+  }
+);
