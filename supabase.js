@@ -22,17 +22,13 @@ sb.auth.onAuthStateChange(async (event, session) => {
   };
   log('event: ' + event + ' session: ' + (session?.user?.id || 'null'));
 
-  if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-    if (session) {
-      if (window._authProcessing || window._authResolved) return;
-      window._authProcessing = true;
-      window._authSession    = session;
-      window._authResolved   = true;
-      if (window._authCallbacks.onAuth) await window._authCallbacks.onAuth(session.user);
-      window._authProcessing = false;
-    } else if (!window._authResolved) {
-      if (window._authCallbacks.onUnauth) window._authCallbacks.onUnauth();
-    }
+  if (event === 'SIGNED_IN' && session) {
+    if (window._authProcessing || window._authResolved) return;
+    window._authProcessing = true;
+    window._authSession    = session;
+    window._authResolved   = true;
+    if (window._authCallbacks.onAuth) await window._authCallbacks.onAuth(session.user);
+    window._authProcessing = false;
   } else if (event === 'SIGNED_OUT') {
     window._authSession    = null;
     window._authResolved   = false;
