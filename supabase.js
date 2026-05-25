@@ -41,27 +41,19 @@ async function initAuth(onAuthenticated, onUnauthenticated) {
   window._authCallbacks.onAuth   = onAuthenticated;
   window._authCallbacks.onUnauth = onUnauthenticated;
 
-  // se sessão já resolvida antes do initAuth ser chamado
-  if (window._authResolved && window._authSession) {
-    await onAuthenticated(window._authSession.user);
-    return;
-  }
-
-  // fallback: verifica sessão diretamente após 500ms
-  setTimeout(async () => {
-    if (window._authResolved) return;
-    const { data } = await sb.auth.getSession();
-    if (data.session) {
-      if (window._authProcessing || window._authResolved) return;
+  // sempre verifica sessão diretamente
+  const { data } = await sb.auth.getSession();
+  if (data.session) {
+    if (!window._authProcessing) {
       window._authProcessing = true;
       window._authSession    = data.session;
       window._authResolved   = true;
       await onAuthenticated(data.session.user);
       window._authProcessing = false;
-    } else {
-      onUnauthenticated();
     }
-  }, 1000);
+  } else {
+    onUnauthenticated();
+  }
 }
 
 async function signInGoogle() {
