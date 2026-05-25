@@ -787,7 +787,21 @@ function render() {
 }
 
 initAuth(
-  function(user) {
+  async function(user) {
+    const u = await dbLoadUser(user.id);
+    const dias = await dbLoadDays(user.id);
+    state.history = {};
+    dias.forEach(function(d) {
+      state.history[d.data] = {
+        checks: d.slots || {},
+        totalSlots: d.total_slots,
+        garrafa: u ? u.volume_garrafa_ml : state.config.garrafa,
+        meta: u ? u.meta_ml : state.config.meta
+      };
+    });
+    if (u) {
+      state.config = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
+    }
     document.getElementById('loading').style.display = 'none';
     render();
   },
