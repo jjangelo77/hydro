@@ -1217,8 +1217,33 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── INIT ───────────────────────────────────────────────────
+let currentUser = null;
+
 initAuth(
   async (user) => {
+    currentUser = user;
+    // carrega dados do Supabase
+    const u = await dbLoadUser(user.id);
+    if (u) {
+      state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
+      state.profile = { nome: u.nome || '', peso: u.peso || 70 };
+    }
+    const dias = await dbLoadDays(user.id);
+    state.history = {};
+    dias.forEach(d => {
+      state.history[d.data] = {
+        checks: d.slots || {}, totalSlots: d.total_slots,
+        garrafa: u ? u.volume_garrafa_ml : state.config.garrafa,
+        meta: u ? u.meta_ml : state.config.meta
+      };
+    });
+    const hoje = new Date().toISOString().slice(0,10);
+    if (state.history[hoje]) {
+      state.checks = state.history[hoje].checks;
+    }
+    state.lastDay = hoje;
+    saveState();
+
     document.getElementById('login-screen').classList.add('hidden');
     document.querySelector('.app').style.display = '';
     checkNotifBanner();
@@ -1227,6 +1252,7 @@ initAuth(
     scheduleNotifs();
   },
   () => {
+    currentUser = null;
     document.getElementById('login-screen').classList.remove('hidden');
     document.querySelector('.app').style.display = 'none';
   }
