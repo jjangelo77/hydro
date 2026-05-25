@@ -1089,8 +1089,8 @@ function toggle(idx) {
   const done = state.checks[idx];
   toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
   if (currentUser) {
-    const hoje = todayStr();
-    dbSaveDay(currentUser.id, hoje, state.checks, state.config).catch(console.error);
+    const hoje = new Date().toISOString().slice(0,10);
+    dbSaveDay(currentUser.id, hoje, state.checks, state.config).then(r => { if(r && r.error) console.error(r.error); });
   }
   render();
 }
@@ -1149,7 +1149,7 @@ function saveConfig() {
   state.checks  = {};
   saveState();
   if (currentUser) {
-    dbSaveUser(currentUser.id, state.config, state.profile).catch(console.error);
+    dbSaveUser(currentUser.id, state.config, state.profile).then(r => { if(r.error) console.error(r.error); });
   }
   closeModal();
   render();
