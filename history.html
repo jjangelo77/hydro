@@ -792,8 +792,9 @@ initAuth(
     const dias = await dbLoadDays(user.id);
     state.history = {};
     dias.forEach(function(d) {
+      var slots = typeof d.slots === 'string' ? JSON.parse(d.slots) : (d.slots || {});
       state.history[d.data] = {
-        checks: d.slots || {},
+        checks: slots,
         totalSlots: d.total_slots,
         garrafa: u ? u.volume_garrafa_ml : state.config.garrafa,
         meta: u ? u.meta_ml : state.config.meta
