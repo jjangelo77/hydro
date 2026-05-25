@@ -12,8 +12,9 @@ const sb = createClient(SUPA_URL, SUPA_ANON, {
 window._authCallbacks = { onAuth: null, onUnauth: null };
 window._authSession   = null;
 window._authResolved  = false;
+window._authProcessing = false;
 
-sb.auth.onAuthStateChange((event, session) => {
+sb.auth.onAuthStateChange(async (event, session) => {
   const log = (msg) => {
     const logs = JSON.parse(localStorage.getItem('hydro_log') || '[]');
     logs.push(new Date().toISOString().slice(11,19) + ' ' + msg);
@@ -23,15 +24,19 @@ sb.auth.onAuthStateChange((event, session) => {
 
   if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
     if (session) {
-      window._authSession  = session;
-      window._authResolved = true;
-      if (window._authCallbacks.onAuth) window._authCallbacks.onAuth(session.user);
+      if (window._authProcessing || window._authResolved) return;
+      window._authProcessing = true;
+      window._authSession    = session;
+      window._authResolved   = true;
+      if (window._authCallbacks.onAuth) await window._authCallbacks.onAuth(session.user);
+      window._authProcessing = false;
     } else if (!window._authResolved) {
       if (window._authCallbacks.onUnauth) window._authCallbacks.onUnauth();
     }
   } else if (event === 'SIGNED_OUT') {
-    window._authSession  = null;
-    window._authResolved = false;
+    window._authSession    = null;
+    window._authResolved   = false;
+    window._authProcessing = false;
     if (window._authCallbacks.onUnauth) window._authCallbacks.onUnauth();
   }
 });
