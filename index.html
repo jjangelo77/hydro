@@ -1087,6 +1087,10 @@ function toggle(idx) {
   saveState();
   const done = state.checks[idx];
   toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
+  if (currentUser) {
+    const hoje = todayStr();
+    dbSaveDay(currentUser.id, hoje, state.checks, state.config).catch(console.error);
+  }
   render();
 }
 
@@ -1143,11 +1147,14 @@ function saveConfig() {
   state.config  = { inicio, fim, meta, garrafa };
   state.checks  = {};
   saveState();
+  if (currentUser) {
+    dbSaveUser(currentUser.id, state.config, state.profile).catch(console.error);
+  }
   closeModal();
   render();
   toast('✓ configuração salva — slots recalculados', true);
   scheduleNotifs();
-}
+  }
 
 // ─── TOAST ──────────────────────────────────────────────────
 let toastTimer;
