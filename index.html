@@ -930,11 +930,17 @@ function checkDayReset() {
     while (keys.length > MAX_HISTORY) {
       delete state.history[keys.shift()];
     }
+    // salva o dia anterior no Supabase
+    if (currentUser) {
+      const lastDayISO = new Date(state.lastDay.split('-').map((v,i) => i===1||i===2 ? v.padStart(2,'0') : v).join('-')).toISOString().slice(0,10);
+      dbSaveDay(currentUser.id, lastDayISO, state.history[state.lastDay].checks, state.config);
+    }
     state.checks = {};
   }
   state.lastDay = today;
   saveState();
 }
+
 
 // ─── RENDER HOJE ─────────────────────────────────────────────
 function render() {
