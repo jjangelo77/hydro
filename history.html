@@ -773,21 +773,58 @@ function render() {
     return null;
   })();
 
+  // Cria o card principal com resumo e lista dos dias
   const summaryCard = document.createElement('div');
   summaryCard.className = 'points-card';
   summaryCard.style.margin = '0';
   summaryCard.style.marginBottom = '24px';
-  summaryCard.innerHTML = `
+  summaryCard.style.flexDirection = 'column';
+  summaryCard.style.alignItems = 'stretch';
+  summaryCard.style.gap = '16px';
+
+  // Parte superior com média e badge
+  const topRow = document.createElement('div');
+  topRow.style.display = 'flex';
+  topRow.style.justifyContent = 'space-between';
+  topRow.style.alignItems = 'center';
+  topRow.innerHTML = `
     <div>
       <div class="points-label">semana atual</div>
-      <div class="points-val">${completeDays}/7</div>
-      <div class="points-unit">dias completos</div>
+      <div class="points-val">${avgPct2}%</div>
+      <div class="points-unit">média semanal</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:8px;">
-        média ${avgPct2}% · ${totalPoints} pts
+        ${completeDays}/7 dias completos · ${totalPoints} pts
       </div>
     </div>
     <div class="points-badge">${weeklyMedal ? weeklyMedal.icon : '📊'}</div>
   `;
+  summaryCard.appendChild(topRow);
+
+  // Grid dos 7 dias da semana
+  const weekGrid = document.createElement('div');
+  weekGrid.style.display = 'grid';
+  weekGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+  weekGrid.style.gap = '6px';
+  weekGrid.style.marginTop = '8px';
+
+  const weekDaysNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']; // Dom a Sáb
+
+  weekDays2.forEach((day, idx) => {
+    const dayDiv = document.createElement('div');
+    dayDiv.style.textAlign = 'center';
+    dayDiv.style.padding = '6px 0';
+    dayDiv.style.borderRadius = '8px';
+    dayDiv.style.background = day.isFuture ? 'var(--surface)' : (day.pct >= 100 ? 'rgba(0,200,122,0.15)' : day.pct > 0 ? 'rgba(0,102,255,0.1)' : 'var(--surface2)');
+    dayDiv.style.border = `1px solid ${day.isFuture ? 'var(--border)' : (day.pct >= 100 ? 'var(--done-border)' : 'var(--border2)')}`;
+    dayDiv.style.opacity = day.isFuture ? '0.5' : '1';
+    dayDiv.innerHTML = `
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text2);">${weekDaysNames[idx]}</div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:${day.pct >= 100 ? 'var(--done)' : (day.pct > 0 ? 'var(--accent)' : 'var(--text3)')}">${day.isFuture ? '-' : day.pct}%</div>
+    `;
+    weekGrid.appendChild(dayDiv);
+  });
+
+  summaryCard.appendChild(weekGrid);
   cards.appendChild(summaryCard);
 }
 
