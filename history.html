@@ -559,13 +559,18 @@ function todayStr() {
 }
 
 function getDayData(dateStr) {
-  const today = todayStr();
+  // Normaliza para o formato ISO com zeros (YYYY-MM-DD)
+  const parts = dateStr.split('-');
+  const isoKey = parts[0] + '-' + parts[1].padStart(2,'0') + '-' + parts[2].padStart(2,'0');
+  
+  const today = todayStr(); // "2026-5-26" (sem zeros)
   if (dateStr === today) {
     const n = Math.ceil(state.config.meta / state.config.garrafa);
     const done = Object.values(state.checks).filter(Boolean).length;
     return { done, total: n, ml: done * state.config.garrafa, meta: state.config.meta, isToday: true, isFuture: false };
   }
-  const h = state.history[dateStr];
+  
+  const h = state.history[isoKey]; // agora usa a chave com zeros
   if (!h) {
     const [y,m,d] = dateStr.split('-').map(Number);
     const dt = new Date(y, m-1, d);
@@ -621,7 +626,7 @@ function buildSelectors() {
 
 
 function openDayModal(d) {
-  const ds = viewYear+'-'+(viewMonth+1)+'-'+d;
+  const ds = viewYear+'-'+String(viewMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
   const data = getDayData(ds);
   const pct = getPct(data);
   const medal = getDailyMedal(pct);
