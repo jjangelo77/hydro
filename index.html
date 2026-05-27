@@ -932,7 +932,8 @@ function checkDayReset() {
     }
     // salva o dia anterior no Supabase
     if (currentUser) {
-      const lastDayISO = new Date(state.lastDay.split('-').map((v,i) => i===1||i===2 ? v.padStart(2,'0') : v).join('-')).toISOString().slice(0,10);
+      const [y, m, d] = state.lastDay.split('-');
+      const lastDayISO = y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
       dbSaveDay(currentUser.id, lastDayISO, state.history[state.lastDay].checks, state.config);
     }
     state.checks = {};
