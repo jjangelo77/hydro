@@ -1100,7 +1100,7 @@ function toggle(idx) {
   const done = state.checks[idx];
   toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
   if (currentUser) {
-    const hoje = new Date().toISOString().slice(0,10);
+    const hoje = todayStr();
     dbSaveDay(currentUser.id, hoje, state.checks, state.config).then(r => { if(r && r.error) console.error(r.error); });
   }
   render();
