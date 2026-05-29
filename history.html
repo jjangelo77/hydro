@@ -11,6 +11,49 @@
 <script src="/supabase-sdk.js"></script>
 <script src="/supabase.js"></script>
 <style>
+
+.points-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(2,10,20,0.88);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.points-modal-overlay.show { opacity: 1; pointer-events: all; }
+.points-modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 280px;
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.2s;
+}
+.points-modal-overlay.show .points-modal-box { transform: scale(1); }
+.points-modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.points-modal-icon { font-size: 56px; margin-bottom: 12px; }
+.points-modal-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
+.points-modal-hoje { font-family: var(--mono); font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+.points-modal-total { font-family: var(--mono); font-size: 12px; color: var(--text3); margin-bottom: 24px; }
+.points-modal-close {
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 24px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.points-modal-close:hover { background: var(--accent2); }
 :root {
   --bg: #020a14;
   --surface: #040f1e;
@@ -694,7 +737,7 @@ function render() {
   const pointsCard = document.querySelector('.points-card');
   if (pointsCard) {
     pointsCard.title = `Total acumulado: ${pontosTotal} pts`;
-    pointsCard.onclick = () => alert(`Pontos hoje: ${pontosHoje}\nTotal acumulado: ${pontosTotal}`);
+    pointsCard.onclick = () => openPointsModal(pontosHoje, pontosTotal);
   }
     const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
     const firstDow = new Date(viewYear, viewMonth, 1).getDay();
@@ -843,7 +886,22 @@ function render() {
   summaryCard.appendChild(weekGrid);
   cards.appendChild(summaryCard);
 }
+function openPointsModal(pontosHoje, pontosTotal) {
+  document.getElementById('points-modal-hoje').textContent = `Hoje: ${pontosHoje} pts`;
+  document.getElementById('points-modal-total').textContent = `Total acumulado: ${pontosTotal} pts`;
+  let icon = '💧';
+  if (pontosTotal >= 2000) icon = '💎';
+  else if (pontosTotal >= 1000) icon = '🥇';
+  else if (pontosTotal >= 500) icon = '🥈';
+  else if (pontosTotal >= 100) icon = '🥉';
+  document.getElementById('points-modal-icon').textContent = icon;
+  document.getElementById('points-modal').classList.add('show');
+}
 
+function closePointsModal(e) {
+  if (e && e.target !== document.getElementById('points-modal')) return;
+  document.getElementById('points-modal').classList.remove('show');
+}
 initAuth(
   async function(user) {
     const u = await dbLoadUser(user.id);
@@ -871,5 +929,17 @@ initAuth(
   function() { window.location.href = 'index.html'; }
 );
 </script>
+
+<div class="points-modal-overlay" id="points-modal" onclick="closePointsModal(event)">
+  <div class="points-modal-box">
+    <div class="points-modal-handle"></div>
+    <div class="points-modal-icon" id="points-modal-icon">💧</div>
+    <div class="points-modal-title">Pontos</div>
+    <div class="points-modal-hoje" id="points-modal-hoje">Hoje: 0 pts</div>
+    <div class="points-modal-total" id="points-modal-total">Total acumulado: 0 pts</div>
+    <button class="points-modal-close" onclick="closePointsModal()">fechar</button>
+  </div>
+</div>
+
 </body>
 </html>
