@@ -852,6 +852,10 @@ initAuth(
     if (u) {
       state.config = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
     }
+    var hoje = todayStr();
+    if (state.history[hoje]) {
+      state.checks = state.history[hoje].checks;
+    }
     document.getElementById('loading').style.display = 'none';
     render();
   },
