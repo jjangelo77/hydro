@@ -1167,7 +1167,18 @@ function toggle(idx) {
   toast(done ? '✓ garrafa ' + (idx+1) + ' marcada' : 'garrafa ' + (idx+1) + ' desmarcada', done);
   if (currentUser) {
     const hoje = todayStr();
-    dbSaveDay(currentUser.id, hoje, state.checks, state.config).then(r => { if(r && r.error) console.error(r.error); });
+    dbSaveDay(currentUser.id, hoje, state.checks, state.config).then(r => {
+      if(r && r.error) console.error(r.error);
+      // Atualiza o state.history com os checks atuais
+      const slots = buildSlots();
+      state.history[hoje] = {
+        checks: { ...state.checks },
+        totalSlots: slots.length,
+        garrafa: state.config.garrafa,
+        meta: state.config.meta
+      };
+      saveState();
+    });
   }
   render();
 }
