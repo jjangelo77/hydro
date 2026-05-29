@@ -666,32 +666,38 @@ function render() {
   document.getElementById('filter-label').textContent = monthNames[viewMonth] + ' ' + viewYear;
   buildSelectors();
 
- // Points
+   // Points - mostra apenas pontos do dia atual
+  const hoje = todayStr();
+  const h = state.history[hoje];
+  let pontosHoje = 0;
+  if (h) {
+    const done = Object.values(h.checks).filter(Boolean).length;
+    const pct = Math.min(100, Math.round((done / h.totalSlots) * 100));
+    pontosHoje = pct >= 100 ? 50 : pct >= 75 ? 20 : pct >= 50 ? 10 : 0;
+  }
+  document.getElementById('pts-val').textContent = pontosHoje.toLocaleString('pt-BR');
   
-  const historyComHoje = { ...state.history };
-  if (!historyComHoje[today]) {
-  const n = Math.ceil(state.config.meta / state.config.garrafa);
-  const done = Object.values(state.checks).filter(Boolean).length;
-  historyComHoje[today] = { checks: state.checks, totalSlots: n, garrafa: state.config.garrafa, meta: state.config.meta };
-}
-  const pts = Object.keys(historyComHoje).reduce((total, date) => {
-  const h = historyComHoje[date];
-  const done = Object.values(h.checks).filter(Boolean).length;
-  const pct = Math.min(100, Math.round((done / h.totalSlots) * 100));
-  const medal = pct >= 100 ? 50 : pct >= 75 ? 20 : pct >= 50 ? 10 : 0;
-  return total + medal;
-  }, 0);
-  document.getElementById('pts-val').textContent = pts.toLocaleString('pt-BR');
   let badge = '💧';
-  if (pts >= 2000) badge = '💎';
-  else if (pts >= 1000) badge = '🥇';
-  else if (pts >= 500) badge = '🥈';
-  else if (pts >= 100) badge = '🥉';
+  if (pontosHoje >= 50) badge = '🥇';
+  else if (pontosHoje >= 20) badge = '🥈';
+  else if (pontosHoje >= 10) badge = '🥉';
   document.getElementById('pts-badge').textContent = badge;
-
-  const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
-  const firstDow = new Date(viewYear, viewMonth, 1).getDay();
-
+  
+  // Calcula total acumulado
+  const pontosTotal = Object.keys(state.history).reduce((total, date) => {
+    const hh = state.history[date];
+    const done = Object.values(hh.checks).filter(Boolean).length;
+    const pct = Math.min(100, Math.round((done / hh.totalSlots) * 100));
+    return total + (pct >= 100 ? 50 : pct >= 75 ? 20 : pct >= 50 ? 10 : 0);
+  }, 0);
+  
+  const pointsCard = document.querySelector('.points-card');
+  if (pointsCard) {
+    pointsCard.title = `Total acumulado: ${pontosTotal} pts`;
+    pointsCard.onclick = () => alert(`Pontos hoje: ${pontosHoje}\nTotal acumulado: ${pontosTotal}`);
+  }
+    const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+    const firstDow = new Date(viewYear, viewMonth, 1).getDay();
   // Cache day data
   const cache = {};
   let fullDaysCount = 0, totalPct = 0, activeDays = 0, monthPts = 0;
