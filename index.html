@@ -997,7 +997,7 @@ function checkDayReset() {
       }
     }
     // LIMPA OS CHECKS DO DIA ANTERIOR
-    state.checks = {};
+    
     saveState();
   }
   state.lastDay = today;
@@ -1007,12 +1007,8 @@ function checkDayReset() {
 
 // ─── RENDER HOJE ─────────────────────────────────────────────
 function render() {
-  checkDayReset();
-  const hoje = todayStr();
-  if (!state.history[hoje]) {
-    state.checks = {};
-    saveState();
-  }
+  
+  
   const slots  = buildSlots();
   const n      = slots.length;
   const done   = Object.values(state.checks).filter(Boolean).length;
