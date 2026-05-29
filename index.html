@@ -14,6 +14,22 @@
 <script src="/supabase-sdk.js"></script>
 <script src="/supabase.js?v=2"></script>
 <style>
+
+.cfg-edit {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  margin-top: 8px;
+}
+.cfg-edit:hover { background: var(--glow); border-color: var(--accent); }
+
 .hidden { display: none !important; }
 :root {
   --bg: #020a14;
@@ -423,6 +439,8 @@ body::before {
   min-height: 100dvh;
 }
 
+
+
 .config-screen.open { display: block; }
 
 .cfg-title {
@@ -829,6 +847,7 @@ input[type="range"] {
 
   <button class="cfg-save" onclick="saveConfig()">Salvar e recalcular</button>
   <button class="cfg-cancel" onclick="closeModal()">cancelar</button>
+  <button class="cfg-edit" id="cfg-edit" style="display:none;" onclick="enableEdit()">✎ editar</button>
 </div>
 
 <script>
@@ -854,7 +873,8 @@ var state = loadState() || {
   profile: { nome: '', nasc: '', peso: 70 },
   checks: {},
   lastDay: null,
-  history: {}
+  history: {},
+  configLocked: false
 };
 
 if (!state.history) state.history = {};
@@ -1132,6 +1152,7 @@ function openModal() {
   document.getElementById('meta-hint').textContent   = 'calculado pelo peso · ajuste se necessário';
   document.getElementById('config-screen').classList.add('open');
   document.querySelector('.app').style.display = 'none';
+  lockConfigFields(state.configLocked === true);
 }
 
 function closeModal() {
@@ -1162,11 +1183,14 @@ function saveConfig() {
   if (currentUser) {
     dbSaveUser(currentUser.id, state.config, state.profile).then(r => { if(r.error) console.error(r.error); });
   }
+  state.configLocked = true;
+  saveState();
+  lockConfigFields(true);
   closeModal();
   render();
   toast('✓ configuração salva — slots recalculados', true);
   scheduleNotifs();
-  }
+}
 
 // ─── TOAST ──────────────────────────────────────────────────
 var toastTimer;
@@ -1230,6 +1254,25 @@ function scheduleNotifs() {
   });
 }
 
+// ─── BLOQUEIO DE CONFIG ─────────────────────────────────────
+function lockConfigFields(locked) {
+  const inputs = ['inp-nome', 'inp-peso', 'inp-inicio', 'inp-fim', 'inp-meta', 'inp-garrafa'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = locked;
+  });
+  const saveBtn = document.querySelector('.cfg-save');
+  const editBtn = document.getElementById('cfg-edit');
+  if (saveBtn) saveBtn.style.display = locked ? 'none' : 'block';
+  if (editBtn) editBtn.style.display = locked ? 'block' : 'none';
+}
+
+function enableEdit() {
+  lockConfigFields(false);
+  state.configLocked = false;
+  saveState();
+}
+
 // ─── SERVICE WORKER ─────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
@@ -1237,6 +1280,25 @@ if ('serviceWorker' in navigator) {
 
 // ─── INIT ───────────────────────────────────────────────────
 var currentUser = null;
+
+// ─── BLOQUEIO DE CONFIG ─────────────────────────────────────
+function lockConfigFields(locked) {
+  const inputs = ['inp-nome', 'inp-peso', 'inp-inicio', 'inp-fim', 'inp-meta', 'inp-garrafa'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = locked;
+  });
+  const saveBtn = document.querySelector('.cfg-save');
+  const editBtn = document.getElementById('cfg-edit');
+  if (saveBtn) saveBtn.style.display = locked ? 'none' : 'block';
+  if (editBtn) editBtn.style.display = locked ? 'block' : 'none';
+}
+
+function enableEdit() {
+  lockConfigFields(false);
+  state.configLocked = false;
+  saveState();
+}
 
 initAuth(
   async (user) => {
