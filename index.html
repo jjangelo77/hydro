@@ -1090,8 +1090,11 @@ function renderHistory() {
 
   const yest = (() => {
     const x = new Date();
-    x.setDate(x.getDate()-1);
-    return x.getFullYear()+'-'+(x.getMonth()+1)+'-'+x.getDate();
+    x.setDate(x.getDate() - 1);
+    const ano = x.getFullYear();
+    const mes = (x.getMonth() + 1).toString().padStart(2, '0');
+    const dia = x.getDate().toString().padStart(2, '0');
+    return ano + '-' + mes + '-' + dia;
   })();
 
   const h = state.history[yest];
@@ -1358,6 +1361,7 @@ initAuth(
       const dias = await dbLoadDays(user.id);
       state.history = {};
       dias.forEach(d => {
+        console.log('state.history carregado:', state.history);
         const slots = typeof d.slots === 'string' ? JSON.parse(d.slots) : (d.slots || {});
         state.history[d.data] = {
           checks: slots,
