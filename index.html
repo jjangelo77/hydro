@@ -987,13 +987,18 @@ function checkDayReset() {
     while (keys.length > MAX_HISTORY) {
       delete state.history[keys.shift()];
     }
-    // salva o dia anterior no Supabase
+    // salva o dia anterior no Supabase (apenas se houver garrafas marcadas)
     if (currentUser) {
-      const [y, m, d] = state.lastDay.split('-');
-      const lastDayISO = y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
-      dbSaveDay(currentUser.id, lastDayISO, state.history[state.lastDay].checks, state.config);
+      const marcadas = Object.values(state.checks).filter(Boolean).length;
+      if (marcadas > 0) {
+        const [y, m, d] = state.lastDay.split('-');
+        const lastDayISO = y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0');
+        dbSaveDay(currentUser.id, lastDayISO, state.history[state.lastDay].checks, state.config);
+      }
     }
+    // LIMPA OS CHECKS DO DIA ANTERIOR
     state.checks = {};
+    saveState();
   }
   state.lastDay = today;
   saveState();
@@ -1003,6 +1008,11 @@ function checkDayReset() {
 // ─── RENDER HOJE ─────────────────────────────────────────────
 function render() {
   checkDayReset();
+  const hoje = todayStr();
+  if (!state.history[hoje]) {
+    state.checks = {};
+    saveState();
+  }
   const slots  = buildSlots();
   const n      = slots.length;
   const done   = Object.values(state.checks).filter(Boolean).length;
@@ -1359,11 +1369,12 @@ initAuth(
       
       
       var hoje = todayStr();
-      
       if (state.history[hoje]) {
         state.checks = state.history[hoje].checks;
-        
+      } else {
+        state.checks = {}; // se não tem registro para hoje, começa zerado
       }
+      saveState();
       state.lastDay = todayStr();
       saveState();
       document.getElementById('login-screen').classList.add('hidden');
