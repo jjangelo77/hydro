@@ -1383,7 +1383,9 @@ initAuth(
       if (state.history[hoje]) {
         state.checks = state.history[hoje].checks;
       } else {
-        state.checks = {}; // se não tem registro para hoje, começa zerado
+        if (Object.keys(state.checks).length === 0) {
+          state.checks = {};
+        }
       }
       saveState();
       state.lastDay = todayStr();
