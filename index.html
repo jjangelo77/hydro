@@ -15,6 +15,38 @@
 <script src="/supabase.js?v=2"></script>
 <style>
 
+.cfg-back-top {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cfg-back-top:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--glow2);
+}
+
+.cfg-back {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  margin-top: 8px;
+}
+.cfg-back:hover { border-color: var(--accent); color: var(--text); }
+
 .cfg-edit {
   width: 100%;
   background: var(--surface2);
@@ -808,8 +840,13 @@ input[type="range"] {
 
 <!-- CONFIG SCREEN -->
 <div class="config-screen" id="config-screen">
-  <div class="cfg-brand">IASolution</div>
-  <div class="cfg-title">Configurar</div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;">
+    <div>
+      <div class="cfg-brand">IASolution</div>
+      <div class="cfg-title" style="margin-bottom: 0;">Configurar</div>
+    </div>
+    <button class="cfg-back-top" onclick="closeModal()">← Voltar</button>
+  </div>
 
   <div class="field">
     <div class="field-label">Seu nome</div>
@@ -845,8 +882,8 @@ input[type="range"] {
       oninput="document.getElementById('lbl-garrafa').textContent=this.value+' ml'">
   </div>
 
-  <button class="cfg-save" onclick="saveConfig()">Salvar e recalcular</button>
-  <button class="cfg-cancel" onclick="closeModal()">cancelar</button>
+  <button class="cfg-save" onclick="saveConfig()">Salvar</button>
+  <button class="cfg-cancel" onclick="closeModal()">Cancelar</button>
   <button class="cfg-edit" id="cfg-edit" style="display:none;" onclick="enableEdit()">✎ editar</button>
 </div>
 
@@ -1268,7 +1305,6 @@ function lockConfigFields(locked) {
 }
 
 function enableEdit() {
-  lockConfigFields(false);
   state.configLocked = false;
   saveState();
 }
