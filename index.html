@@ -974,20 +974,16 @@ function slotStatus(slot, idx) {
 function checkDayReset() {
   const today = todayStr();
   if (state.lastDay && state.lastDay !== today) {
-    // salva o dia que passou no histórico
+    // salva o dia que passou no histórico LOCAL
     const slots = buildSlots();
     state.history[state.lastDay] = {
-      checks:     { ...state.checks },
+      checks: { ...state.checks },
       totalSlots: slots.length,
-      garrafa:    state.config.garrafa,
-      meta:       state.config.meta
+      garrafa: state.config.garrafa,
+      meta: state.config.meta
     };
-    // mantém só os últimos MAX_HISTORY dias
-    const keys = Object.keys(state.history).sort();
-    while (keys.length > MAX_HISTORY) {
-      delete state.history[keys.shift()];
-    }
-    // salva o dia anterior no Supabase (apenas se houver garrafas marcadas)
+    
+    // salva no Supabase se houver marcas
     if (currentUser) {
       const marcadas = Object.values(state.checks).filter(Boolean).length;
       if (marcadas > 0) {
@@ -996,9 +992,22 @@ function checkDayReset() {
         dbSaveDay(currentUser.id, lastDayISO, state.history[state.lastDay].checks, state.config);
       }
     }
-    // LIMPA OS CHECKS DO DIA ANTERIOR
     
+    // FORÇA LIMPEZA VISUAL
+    state.checks = {};
     saveState();
+    
+    // Remove os slots da tela imediatamente
+    const list = document.getElementById('slots-list');
+    if (list) {
+      const slotsElements = list.querySelectorAll('.slot');
+      slotsElements.forEach(slot => {
+        slot.classList.remove('done', 'active', 'late');
+        slot.classList.add('upcoming');
+        const checkDiv = slot.querySelector('.slot-check');
+        if (checkDiv) checkDiv.textContent = '○';
+      });
+    }
   }
   state.lastDay = today;
   saveState();
