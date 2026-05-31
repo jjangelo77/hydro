@@ -1008,7 +1008,7 @@ function checkDayReset() {
 // ─── RENDER HOJE ─────────────────────────────────────────────
 function render() {
   
-  
+  checkDayReset();
   const slots  = buildSlots();
   const n      = slots.length;
   const done   = Object.values(state.checks).filter(Boolean).length;
@@ -1388,6 +1388,7 @@ initAuth(
         }
       }
       saveState();
+      checkDayReset();
       state.lastDay = todayStr();
       saveState();
       document.getElementById('login-screen').classList.add('hidden');
