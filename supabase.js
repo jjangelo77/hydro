@@ -3,7 +3,12 @@ var SUPA_URL  = 'https://bxzbabkngdveobfewuxp.supabase.co';
 var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4emJhYmtuZ2R2ZW9iZmV3dXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMzkwNDUsImV4cCI6MjA2NDkxNTA0NX0.Fc5bcB9RLiXZqEADLt6a_KwJKOTgr2qGQ-VcLwsyGzo';
 
 var sb = supabase.createClient(SUPA_URL, SUPA_ANON, {
-  auth: { flowType: 'implicit', detectSessionInUrl: true }
+  auth: {
+    flowType: 'implicit',
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true
+  }
 });
 
 // ─── AUTH ────────────────────────────────────────────────────
@@ -14,20 +19,61 @@ function initAuth(onAuthenticated, onUnauthenticated) {
     localStorage.setItem('hydro_log', JSON.stringify(logs.slice(-30)));
   };
 
-  sb.auth.getSession().then(function(result) {
-    var session = result.data.session;
-    log('getSession: ' + (session ? session.user.id : 'null'));
+  var ultimo = undefined;
+
+  function aplicar(session) {
+    var chave = session ? session.user.id : null;
+    if (chave === ultimo) return;
+    ultimo = chave;
     if (session) {
       onAuthenticated(session.user);
     } else {
       onUnauthenticated();
-      sb.auth.onAuthStateChange(function(event, session) {
-        log('event: ' + event + ' session: ' + (session ? session.user.id : 'null'));
-        if (event === 'SIGNED_IN' && session) {
-          onAuthenticated(session.user);
-        }
-      });
     }
+  }
+
+  function lerSessao(tentativa) {
+    sb.auth.getSession().then(function(result) {
+      var session = result.data.session;
+      log('getSession: ' + (session ? session.user.id : 'null'));
+      aplicar(session);
+    }).catch(function(erro) {
+      log('getSession erro: ' + (erro && erro.message ? erro.message : 'desconhecido'));
+      if (tentativa > 0) {
+        setTimeout(function() { lerSessao(tentativa - 1); }, 1500);
+      } else {
+        aplicar(null);
+      }
+    });
+  }
+
+  lerSessao(2);
+
+  sb.auth.onAuthStateChange(function(event, session) {
+    log('event: ' + event + ' session: ' + (session ? session.user.id : 'null'));
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+      aplicar(session);
+    } else if (event === 'SIGNED_OUT') {
+      aplicar(null);
+    }
+  });
+
+  function renovarSeVisivel() {
+    if (document.visibilityState !== 'visible') return;
+    sb.auth.getSession().then(function(result) {
+      if (result.data.session) {
+        sb.auth.refreshSession().then(function(r) {
+          if (r && r.error) log('refresh erro: ' + r.error.message);
+          else log('refresh ok');
+        });
+      }
+    });
+  }
+
+  document.addEventListener('visibilitychange', renovarSeVisivel);
+  window.addEventListener('online', renovarSeVisivel);
+  window.addEventListener('pageshow', function(evento) {
+    if (evento.persisted) renovarSeVisivel();
   });
 }
 

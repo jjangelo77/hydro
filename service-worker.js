@@ -1,4 +1,4 @@
-const CACHE = 'hydro-v4';
+const CACHE = 'hydro-v5';
 const ASSETS = [
   '/index.html',
   '/history.html',
@@ -7,8 +7,11 @@ const ASSETS = [
   '/icon-512.png'
 ];
 
-self.addEventListener('fetch', e => {
-  e.respondWith(fetch(e.request));
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(ASSETS))
+  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
@@ -20,7 +23,30 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).catch(() =>
+        caches.match(req).then(cached => cached || caches.match('/index.html'))
+      )
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(req)
+      .then(res => {
+        if (res && res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(cache => cache.put(req, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
   );
 });
