@@ -92,13 +92,15 @@ function signOut() {
 function dbLoadUser(userId) {
   return sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle().then(function(r) { return r.data; });
 }
-function dbSaveUser(userId, config, profile) {
-  return sb.from('hydro_users').upsert({
+function dbSaveUser(userId, config, profile, email) {
+  var dados = {
     user_id: userId, nome: profile.nome, peso: profile.peso,
     meta_ml: config.meta, volume_garrafa_ml: config.garrafa,
     hora_inicio: config.inicio, hora_fim: config.fim,
     atualizado_em: new Date().toISOString()
-  }, { onConflict: 'user_id' });
+  };
+  if (email) dados.email = String(email).toLowerCase();
+  return sb.from('hydro_users').upsert(dados, { onConflict: 'user_id' });
 }
 function dbLoadDays(userId) {
   return sb.from('hydro_days').select('*').eq('user_id', userId).then(function(r) { return r.data || []; });

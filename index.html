@@ -1250,7 +1250,7 @@ function saveConfig() {
   state.checks  = {};
   saveState();
   if (currentUser) {
-    dbSaveUser(currentUser.id, state.config, state.profile).then(r => { if(r.error) console.error(r.error); });
+    dbSaveUser(currentUser.id, state.config, state.profile, currentUser.email).then(r => { if(r.error) console.error(r.error); });
   }
   state.configLocked = true;
   saveState();
@@ -1376,6 +1376,9 @@ initAuth(
       if (u) {
         state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
         state.profile = { nome: u.nome || '', peso: u.peso || 70 };
+      }
+      if (!u || !u.email) {
+        dbSaveUser(user.id, state.config, state.profile, user.email).then(function(r) { if (r && r.error) console.error(r.error); });
       }
       const dias = await dbLoadDays(user.id);
       state.history = {};
