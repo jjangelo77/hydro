@@ -1,4 +1,4 @@
-const CACHE = 'hydro-v5';
+const CACHE = 'hydro-v6';
 const ASSETS = [
   '/index.html',
   '/history.html',

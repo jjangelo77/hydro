@@ -573,19 +573,28 @@ select:focus { border-color: var(--accent); }
 
 <script>
 const STORE_KEY = 'hydro_v2';
+let currentUser = null;
 
-function loadState() {
-  try { const r = localStorage.getItem(STORE_KEY); if (r) return JSON.parse(r); } catch(e) {}
+function estadoPadrao() {
+  return {
+    config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+    profile: { nome: '', peso: 70 },
+    checks: {}, lastDay: null, history: {}, points: 0, medals: {}
+  };
+}
+
+function chaveEstado() {
+  return currentUser && currentUser.id ? STORE_KEY + ':' + currentUser.id : STORE_KEY;
+}
+
+function loadState(userId) {
+  try { const r = localStorage.getItem(userId ? STORE_KEY + ':' + userId : STORE_KEY); if (r) return JSON.parse(r); } catch(e) {}
   return null;
 }
 
-function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function saveState() { localStorage.setItem(chaveEstado(), JSON.stringify(state)); }
 
-let state = loadState() || {
-  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
-  profile: { nome: '', peso: 70 },
-  checks: {}, lastDay: null, history: {}, points: 0, medals: {}
-};
+let state = estadoPadrao();
 
 if (!state.history) state.history = {};
 if (!state.profile) state.profile = { nome: '', peso: 70 };
@@ -904,7 +913,11 @@ function closePointsModal(e) {
 }
 initAuth(
   async function(user) {
-    const u = await dbLoadUser(user.id);
+    currentUser = user;
+    localStorage.removeItem(STORE_KEY);
+    state = loadState(user.id) || estadoPadrao();
+    const resultado = await dbLoadUser(user.id);
+    const u = resultado ? resultado.data : null;
     const dias = await dbLoadDays(user.id);
     state.history = {};
     dias.forEach(function(d) {

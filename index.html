@@ -865,7 +865,7 @@ input[type="range"] {
   <div class="field">
     <div class="field-label">Meta diária <span class="field-val" id="lbl-meta">4000 ml</span></div>
     <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:6px;" id="meta-hint">calculado pelo peso · ajuste se necessário</div>
-    <input type="range" id="inp-meta" min="1000" max="8000" step="250" value="4000"
+    <input type="range" id="inp-meta" min="1000" max="8000" step="50" value="4000"
       oninput="document.getElementById('lbl-meta').textContent=this.value+' ml';document.getElementById('meta-hint').textContent='ajustado manualmente'">
   </div>
 
@@ -888,6 +888,7 @@ input[type="range"] {
   <button class="cfg-save" onclick="saveConfig()">Salvar</button>
   <button class="cfg-edit" id="cfg-edit" style="display:none;" onclick="enableEdit()">✎ editar</button>
   <button class="cfg-cancel" onclick="closeModal()">Cancelar</button>
+  <button class="cfg-cancel" style="color:#ef4444;margin-top:8px;" onclick="sairDaConta()">Sair / trocar conta</button>
 </div>
 
 <script>
@@ -896,26 +897,39 @@ var STORE_KEY   = 'hydro_v2';
 var MAX_HISTORY = 1825; // dias
 
 // ─── STATE ──────────────────────────────────────────────────
-function loadState() {
+function estadoPadrao() {
+  return {
+    config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+    profile: { nome: '', nasc: '', peso: 70 },
+    checks: {},
+    lastDay: null,
+    history: {},
+    configLocked: false
+  };
+}
+
+function chaveEstado() {
+  return currentUser && currentUser.id ? STORE_KEY + ':' + currentUser.id : STORE_KEY;
+}
+
+function loadState(userId) {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(userId ? STORE_KEY + ':' + userId : STORE_KEY);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
   return null;
 }
 
 function saveState() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  localStorage.setItem(chaveEstado(), JSON.stringify(state));
 }
 
-var state = loadState() || {
-  config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
-  profile: { nome: '', nasc: '', peso: 70 },
-  checks: {},
-  lastDay: null,
-  history: {},
-  configLocked: false
-};
+function nomeDoGoogle(user) {
+  const meta = (user && user.user_metadata) || {};
+  return meta.full_name || meta.name || meta.nome || '';
+}
+
+var state = estadoPadrao();
 
 if (!state.history) state.history = {};
 if (!state.profile) state.profile = { nome: '', nasc: '', peso: 70 };
@@ -1229,9 +1243,14 @@ function closeModal() {
   document.querySelector('.app').style.display = 'block';
 }
 
+function sairDaConta() {
+  if (!confirm('Sair da conta neste aparelho?')) return;
+  signOut();
+}
+
 function onPesoChange(val) {
   document.getElementById('lbl-peso').textContent = val + ' kg';
-  const metaCalc = Math.round(parseInt(val) * 37 / 250) * 250; // arredonda p/ 250ml
+  const metaCalc = Math.round(parseInt(val) * 35 / 50) * 50;
   document.getElementById('inp-meta').value = metaCalc;
   document.getElementById('lbl-meta').textContent = metaCalc + ' ml';
   document.getElementById('meta-hint').textContent = 'calculado pelo peso · ajuste se necessário';
@@ -1368,16 +1387,45 @@ function enableEdit() {
   saveState();
 }
 
+function dbLoadMetaFitPlano() {
+  return sb.auth.getSession().then(function(r) {
+    const sessao = r && r.data ? r.data.session : null;
+    if (!sessao || !sessao.access_token) return null;
+    return fetch('https://fitplano.iasolution.cloud/api/hydro/meta', {
+      headers: { Authorization: 'Bearer ' + sessao.access_token }
+    }).then(function(res) {
+      if (!res.ok) return null;
+      return res.json();
+    }).catch(function() { return null; });
+  }).catch(function() { return null; });
+}
+
 initAuth(
   async (user) => {
     try {
       currentUser = user;
-      const u = await dbLoadUser(user.id);
+      localStorage.removeItem(STORE_KEY);
+      state = loadState(user.id) || estadoPadrao();
+
+      const resultado = await dbLoadUser(user.id);
+      const u = resultado ? resultado.data : null;
+      const falha = resultado ? resultado.error : null;
+
+      if (falha) console.error('dbLoadUser:', falha);
+
       if (u) {
         state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
-        state.profile = { nome: u.nome || '', peso: u.peso || 70 };
+        state.profile = { nome: u.nome || nomeDoGoogle(user), peso: u.peso || 70 };
+      } else if (!falha) {
+        const meta = await dbLoadMetaFitPlano();
+        if (meta) {
+          if (meta.agua_ml) state.config.meta = meta.agua_ml;
+          if (meta.peso) state.profile.peso = meta.peso;
+        }
+        state.profile.nome = nomeDoGoogle(user);
       }
-      if (!u || !u.email) {
+
+      if (!falha && (!u || !u.email)) {
         dbSaveUser(user.id, state.config, state.profile, user.email).then(function(r) { if (r && r.error) console.error(r.error); });
       }
       const dias = await dbLoadDays(user.id);

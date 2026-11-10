@@ -90,7 +90,9 @@ function signOut() {
 
 // ─── DB HELPERS ──────────────────────────────────────────────
 function dbLoadUser(userId) {
-  return sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle().then(function(r) { return r.data; });
+  return sb.from('hydro_users').select('*').eq('user_id', userId).maybeSingle().then(function(r) {
+    return { data: r.data, error: r.error };
+  });
 }
 function dbSaveUser(userId, config, profile, email) {
   var dados = {
