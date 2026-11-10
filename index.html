@@ -1446,6 +1446,8 @@ initAuth(
         state.config  = { inicio: u.hora_inicio.slice(0,5), fim: u.hora_fim.slice(0,5), meta: u.meta_ml, garrafa: u.volume_garrafa_ml };
         state.profile = { nome: u.nome || nomeDoGoogle(user), peso: u.peso || 70 };
       } else if (!falha) {
+        state = estadoPadrao();
+        localStorage.removeItem(chaveEstado());
         const meta = await dbLoadMetaFitPlano();
         if (meta) {
           if (meta.agua_ml) state.config.meta = meta.agua_ml;
