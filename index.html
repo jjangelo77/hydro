@@ -518,7 +518,8 @@ body::before {
 }
 
 input[type="text"],
-input[type="time"] {
+input[type="time"],
+select {
   width: 100%;
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -532,7 +533,8 @@ input[type="time"] {
 }
 
 input[type="text"]:focus,
-input[type="time"]:focus { border-color: var(--accent); }
+input[type="time"]:focus,
+select:focus { border-color: var(--accent); }
 
 input[type="range"] {
   width: 100%;
@@ -846,14 +848,18 @@ input[type="range"] {
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;">
     <div>
       <div class="cfg-brand">IASolution</div>
-      <div class="cfg-title" style="margin-bottom: 0;">Configurar</div>
+      <div class="cfg-title" id="cfg-title" style="margin-bottom: 0;">Configurar</div>
     </div>
-    <button class="cfg-back-top" onclick="closeModal()">← Voltar</button>
+    <button class="cfg-back-top" id="cfg-back" onclick="closeModal()">← Voltar</button>
+  </div>
+
+  <div id="cfg-intro" style="display:none;font-family:var(--mono);font-size:12px;color:var(--text3);margin-bottom:22px;line-height:1.7;">
+    Confirme seus dados para começar. Escolha os horários e o tamanho da garrafa que você usa.
   </div>
 
   <div class="field">
     <div class="field-label">Seu nome</div>
-    <input type="text" id="inp-nome" placeholder="ex: Jonas">
+    <input type="text" id="inp-nome" placeholder="seu nome">
   </div>
 
   <div class="field">
@@ -870,24 +876,33 @@ input[type="range"] {
   </div>
 
   <div class="field">
-    <div class="field-label">Horário de início <span class="field-val" id="lbl-inicio">07:30</span></div>
-    <input type="time" id="inp-inicio" value="07:30" oninput="document.getElementById('lbl-inicio').textContent=this.value">
+    <div class="field-label">Horário de início <span class="field-val" id="lbl-inicio">escolha</span></div>
+    <input type="time" id="inp-inicio" oninput="document.getElementById('lbl-inicio').textContent=this.value||'escolha'">
   </div>
 
   <div class="field">
-    <div class="field-label">Horário de fim <span class="field-val" id="lbl-fim">23:00</span></div>
-    <input type="time" id="inp-fim" value="23:00" oninput="document.getElementById('lbl-fim').textContent=this.value">
+    <div class="field-label">Horário de fim <span class="field-val" id="lbl-fim">escolha</span></div>
+    <input type="time" id="inp-fim" oninput="document.getElementById('lbl-fim').textContent=this.value||'escolha'">
   </div>
 
   <div class="field">
-    <div class="field-label">Volume da garrafa <span class="field-val" id="lbl-garrafa">750 ml</span></div>
-    <input type="range" id="inp-garrafa" min="250" max="2000" step="50" value="750"
-      oninput="document.getElementById('lbl-garrafa').textContent=this.value+' ml'">
+    <div class="field-label">Volume da garrafa <span class="field-val" id="lbl-garrafa">escolha</span></div>
+    <select id="inp-garrafa" onchange="document.getElementById('lbl-garrafa').textContent=this.value?this.value+' ml':'escolha'">
+      <option value="">Selecione</option>
+      <option value="250">250 ml</option>
+      <option value="300">300 ml</option>
+      <option value="500">500 ml</option>
+      <option value="600">600 ml</option>
+      <option value="750">750 ml</option>
+      <option value="1000">1 litro</option>
+      <option value="1500">1,5 litro</option>
+      <option value="2000">2 litros</option>
+    </select>
   </div>
 
   <button class="cfg-save" onclick="saveConfig()">Salvar</button>
   <button class="cfg-edit" id="cfg-edit" style="display:none;" onclick="enableEdit()">✎ editar</button>
-  <button class="cfg-cancel" onclick="closeModal()">Cancelar</button>
+  <button class="cfg-cancel" id="cfg-cancelar" onclick="closeModal()">Cancelar</button>
   <button class="cfg-cancel" style="color:#ef4444;margin-top:8px;" onclick="sairDaConta()">Sair / trocar conta</button>
 </div>
 
@@ -899,7 +914,7 @@ var MAX_HISTORY = 1825; // dias
 // ─── STATE ──────────────────────────────────────────────────
 function estadoPadrao() {
   return {
-    config: { inicio: '07:30', fim: '23:00', meta: 4000, garrafa: 750 },
+    config: { inicio: '', fim: '', meta: 4000, garrafa: 0 },
     profile: { nome: '', nasc: '', peso: 70 },
     checks: {},
     lastDay: null,
@@ -965,6 +980,7 @@ function formatDateLabel(dateStr) {
 // ─── SLOTS ──────────────────────────────────────────────────
 function buildSlots() {
   const { inicio, fim, meta, garrafa } = state.config;
+  if (!inicio || !fim || !garrafa) return [];
   const startM = toMin(inicio);
   const endM   = toMin(fim);
   const total  = endM - startM;
@@ -989,6 +1005,7 @@ function slotStatus(slot, idx) {
 
 // ─── RESET ON NEW DAY (salva histórico antes) ───────────────
 function checkDayReset() {
+  if (!state.config.garrafa || !state.config.inicio || !state.config.fim) return;
   const today = todayStr();
   if (state.lastDay && state.lastDay !== today) {
     // salva o dia que passou no histórico LOCAL
@@ -1033,7 +1050,7 @@ function checkDayReset() {
 
 // ─── RENDER HOJE ─────────────────────────────────────────────
 function render() {
-  
+  if (!state.config.garrafa || !state.config.inicio || !state.config.fim) return;
   checkDayReset();
   const slots  = buildSlots();
   const n      = slots.length;
@@ -1224,21 +1241,29 @@ function openModal() {
   document.getElementById('inp-nome').value    = p.nome || '';
   document.getElementById('inp-peso').value    = p.peso || 70;
   document.getElementById('lbl-peso').textContent = (p.peso || 70) + ' kg';
-  document.getElementById('inp-inicio').value  = c.inicio;
-  document.getElementById('inp-fim').value     = c.fim;
+  document.getElementById('inp-inicio').value  = c.inicio || '';
+  document.getElementById('inp-fim').value     = c.fim || '';
   document.getElementById('inp-meta').value    = c.meta;
-  document.getElementById('inp-garrafa').value = c.garrafa;
-  document.getElementById('lbl-inicio').textContent  = c.inicio;
-  document.getElementById('lbl-fim').textContent     = c.fim;
+  document.getElementById('inp-garrafa').value = c.garrafa || '';
+  document.getElementById('lbl-inicio').textContent  = c.inicio || 'escolha';
+  document.getElementById('lbl-fim').textContent     = c.fim || 'escolha';
   document.getElementById('lbl-meta').textContent    = c.meta + ' ml';
-  document.getElementById('lbl-garrafa').textContent = c.garrafa + ' ml';
+  document.getElementById('lbl-garrafa').textContent = c.garrafa ? c.garrafa + ' ml' : 'escolha';
   document.getElementById('meta-hint').textContent   = 'calculado pelo peso · ajuste se necessário';
+  document.getElementById('cfg-title').textContent   = primeiroAcesso ? 'Bem-vindo' : 'Configurar';
+  document.getElementById('cfg-intro').style.display = primeiroAcesso ? 'block' : 'none';
+  document.getElementById('cfg-back').style.display    = primeiroAcesso ? 'none' : '';
+  document.getElementById('cfg-cancelar').style.display = primeiroAcesso ? 'none' : '';
   document.getElementById('config-screen').classList.add('open');
   document.querySelector('.app').style.display = 'none';
   lockConfigFields(state.configLocked === true);
 }
 
 function closeModal() {
+  if (primeiroAcesso) {
+    toast('Confirme seus dados para começar');
+    return;
+  }
   document.getElementById('config-screen').classList.remove('open');
   document.querySelector('.app').style.display = 'block';
 }
@@ -1263,7 +1288,10 @@ function saveConfig() {
   const fim     = document.getElementById('inp-fim').value;
   const meta    = parseInt(document.getElementById('inp-meta').value);
   const garrafa = parseInt(document.getElementById('inp-garrafa').value);
+  if (!inicio || !fim) { toast('escolha os horários'); return; }
+  if (!garrafa) { toast('escolha o tamanho da garrafa'); return; }
   if (toMin(fim) <= toMin(inicio)) { toast('fim deve ser depois do início'); return; }
+  primeiroAcesso = false;
   state.profile = { nome, peso };
   state.config  = { inicio, fim, meta, garrafa };
   state.checks  = {};
@@ -1367,6 +1395,7 @@ if ('serviceWorker' in navigator) {
 
 // ─── INIT ───────────────────────────────────────────────────
 var currentUser = null;
+var primeiroAcesso = false;
 
 // ─── BLOQUEIO DE CONFIG ─────────────────────────────────────
 function lockConfigFields(locked) {
@@ -1425,13 +1454,15 @@ initAuth(
         state.profile.nome = nomeDoGoogle(user);
       }
 
-      if (!falha && (!u || !u.email)) {
+      if (!falha && u && !u.email) {
         dbSaveUser(user.id, state.config, state.profile, user.email).then(function(r) { if (r && r.error) console.error(r.error); });
       }
+
+      primeiroAcesso = !u && !falha;
+
       const dias = await dbLoadDays(user.id);
       state.history = {};
       dias.forEach(d => {
-        console.log('state.history carregado:', state.history);
         const slots = typeof d.slots === 'string' ? JSON.parse(d.slots) : (d.slots || {});
         state.history[d.data] = {
           checks: slots,
@@ -1455,11 +1486,15 @@ initAuth(
       state.lastDay = todayStr();
       saveState();
       document.getElementById('login-screen').classList.add('hidden');
-      document.querySelector('.app').style.display = '';
-      checkNotifBanner();
-      render();
       setInterval(render, 60 * 1000);
-      scheduleNotifs();
+      if (primeiroAcesso) {
+        openModal();
+      } else {
+        document.querySelector('.app').style.display = '';
+        checkNotifBanner();
+        render();
+        scheduleNotifs();
+      }
     } catch(e) {
       console.error('onAuthenticated error:', e);
     }
